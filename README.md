@@ -3,7 +3,7 @@
 Sentence pair classification for parliamentary turn-taking
 From Asad Sayeed's Machine Learning course at the University of Gothenburg.
 
-## Group Broccoli
+## Group Broccoli 🥦
 
 Azfar Imtiaz\
 Elin Hagman\
