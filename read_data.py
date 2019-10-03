@@ -10,7 +10,8 @@ import config
 
 def process_data_tags(tag, dirname):
     """ Takes a speech tag as string and a directory name. Processes all XML files in the directory """
-    sentences = []
+    words = []
+    boundaries = []
     for filename in os.listdir(dirname):
         if not filename.endswith('.xml'):
             continue
@@ -48,21 +49,17 @@ def process_data_tags(tag, dirname):
             notags = re.sub(r'(\s{2,})', ' ', notags)
             punkt = sent_detector.tokenize(notags)
             for index, s in enumerate(punkt):
-                sentences.append(s.strip())
-                if index == len(punkt) - 1:
-                    break
-                sentences.append("[SAME]")
-            # idk how to do this nicer, tried for s in punkt[:-1]
-            # sentences.pop(-1)
-            sentences.append(boundary)
+                words.append(s.strip())
+                boundaries.append("[SAME]")
+            boundaries.pop(-1)
+            boundaries.append(boundary)
 
     # remove the last boundary because the very last sentence should not have a boundary after it
-    sentences.pop(-1)
-    return sentences
-
+    boundaries.pop(-1)
+    return words, boundaries
 
 def write_sents_to_csv(sentences, filename):
-    with open(filename, 'w') as wfile:
+    with open(filename, 'w', encoding="utf-8") as wfile:
         writer = csv.writer(wfile)
         # write header
         writer.writerow(["Sentence 1", "Sentence 2", "Boundary"])
@@ -76,8 +73,15 @@ def write_sents_to_csv(sentences, filename):
                 pass
 
 
-print(config.data_dir)
+import pandas as pd
+
+
+
 sent_detector = nltk.data.load('tokenizers/punkt/english.pickle')
-sentences = process_data_tags("speech", config.data_dir)
-print("Writing data to scv...")
-write_sents_to_csv(sentences, config.CSV_FILENAME)
+words, bound = process_data_tags("speech", config.data_dir)
+
+df = pd.DataFrame(list(zip(words, bound)), columns =['Sentence', "Boundary"]) 
+print("Writing data to csv...")
+df.to_csv(config.CSV_FILENAME, index=False, encoding='utf-8')
+#write_sents_to_csv(sentences, config.CSV_FILENAME)
+print("Done writing data to csv.")
