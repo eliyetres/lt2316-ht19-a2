@@ -52,7 +52,7 @@ def split_data(sentences, size=0.2):
     for j in testset:
         test_dict[j] = sentences[j]
 
-    return trainset, testset
+    return train_dict, test_dict
 
 
 if __name__ == '__main__':
@@ -97,3 +97,4 @@ if __name__ == '__main__':
         test_size = 0.2
         print("Splitting data into training and testing sets, {}/{}.".format(round(100-(test_size*100)), round(test_size*100)))
         trainset, testset  = split_data(vectorized_data, test_size)
+        print(testset)
