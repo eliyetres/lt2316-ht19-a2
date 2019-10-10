@@ -4,6 +4,7 @@ from torch.utils.data import TensorDataset, DataLoader, RandomSampler, Sequentia
 from pytorch_pretrained_bert import BertTokenizer, BertConfig
 from pytorch_pretrained_bert import BertAdam, BertForSequenceClassification
 from tqdm import tqdm, trange
+import numpy as np
 import joblib
 
 import config
@@ -68,13 +69,13 @@ def prepare_data(data, tokenizer):
     tensor_seqs = torch.LongTensor(padded_seqs)
     tensor_labels = torch.LongTensor(labels)
     tensor_attention_masks = torch.LongTensor(attention_masks)
-    tensor_segment_masks = torch.LongTensor(attention_masks)
+    tensor_segment_masks = torch.LongTensor(segment_masks)
 
     # batching
     batch_size = config.BERT_BATCH_SIZE
     # make an iterator
     tensor_data = TensorDataset(
-        tensor_seqs, train_segment_masks, train_attention_masks, train_labels)
+        tensor_seqs, tensor_segment_masks, tensor_attention_masks, tensor_labels)
     tensor_sampler = RandomSampler(tensor_data)
     tensor_dataloader = DataLoader(
         tensor_data, sampler=tensor_sampler, batch_size=batch_size)
