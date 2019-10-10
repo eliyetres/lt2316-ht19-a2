@@ -18,7 +18,7 @@ def read_data_from_csv(filename):
         reader = csv.reader(rfile)
         for index, row in enumerate(reader):
             try:
-                if index % 500 == 0 and index > 0:
+                if index % 5000 == 0 and index > 0:
                     print("{} rows processed!".format(index))
                 if index == 0:
                     continue
@@ -48,7 +48,7 @@ def combine_sents_bert_style(sent1, sent2):
     return sent
 
 
-def preprocess_sents_bert_style(sent_data, tokenizer):
+def preprocess_sents_bert_style(sent_data, tokenizer, max_sent_len):
     sents = []
     labels = []
     for key in sent_data.keys():
@@ -56,6 +56,8 @@ def preprocess_sents_bert_style(sent_data, tokenizer):
         sent2 = sent_data[key]['sent2']
         combined_sent = combine_sents_bert_style(sent1, sent2)
         tokenized_sent = tokenizer.tokenize(combined_sent)
+        # clip tokens to max_sent_len
+        tokenized_sent = tokenized_sent[:max_sent_len]
         sents.append(tokenized_sent)
         labels.append(sent_data[key]['boundary'])
     return sents, labels
@@ -79,9 +81,15 @@ def create_segment_masks(preprocessed_train_data, max_sent_len):
 
 
 def prepare_data(data, tokenizer):
-    preprocessed_data, labels = preprocess_sents_bert_style(data, tokenizer)
+    max_sent_len = 500
+    print("\tTokenizing data...")
+    preprocessed_data, labels = preprocess_sents_bert_style(
+        data, tokenizer, max_sent_len)
 
-    max_sent_len = max(len(a) for a in preprocessed_data)
+    # max_sent_len = max(len(a) for a in preprocessed_data)
+    # max sentence length for BERT is 512
+
+    print("\tGetting numeric representations, padding and creating segment and attention masks...")
     # get numeric representations of tokens
     input_ids = [tokenizer.convert_tokens_to_ids(
         x) for x in preprocessed_data]
@@ -90,7 +98,7 @@ def prepare_data(data, tokenizer):
                                 for x in input_ids], batch_first=True)
     # create segment masks for separating two sentences
     segment_masks = create_segment_masks(
-        preprocessed_data, len(padded_seqs[0]))
+        preprocessed_data, max_sent_len)
 
     # create attention masks
     attention_masks = []
@@ -98,12 +106,14 @@ def prepare_data(data, tokenizer):
         seq_mask = [float(x > 0) for x in seq]
         attention_masks.append(seq_mask)
 
+    print("\tCreating tensors...")
     # make everything a tensor
     tensor_seqs = torch.LongTensor(padded_seqs)
     tensor_labels = torch.LongTensor(labels)
     tensor_attention_masks = torch.LongTensor(attention_masks)
     tensor_segment_masks = torch.LongTensor(segment_masks)
 
+    print("\tCreating dataset...")
     # batching
     batch_size = config.BERT_BATCH_SIZE
     # make an iterator
@@ -164,8 +174,10 @@ if __name__ == '__main__':
     optimizer = BertAdam(optimizer_grouped_params, lr=2e-5, warmup=.1)
 
     # INPUTS
-    print("Preparing data...")
+    print("Preparing training data...")
     train_dataloader = prepare_data(train_data, tokenizer)
+
+    print("Preparing testing data...")
     test_dataloader = prepare_data(test_data, tokenizer)
 
     # TRAINING
