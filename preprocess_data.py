@@ -63,7 +63,7 @@ if __name__ == '__main__':
 
     print("Getting sentence embeddings...")
     # with open(config.CSV_FILENAME, 'r') as rfile:
-    with open("small_parliament_speech_data.csv", 'r') as rfile:
+    with open(config.CSV_FILENAME, 'r') as rfile:
         reader = csv.reader(rfile)
         for index, row in enumerate(reader):
             try:
@@ -99,7 +99,6 @@ if __name__ == '__main__':
     print("Splitting data into training and testing sets, {}/{}.".format(
         round(100 - (test_size * 100)), round(test_size * 100)))
     trainset, testset = split_data(vectorized_data, test_size)
-    print(testset)
 
-    joblib.dump(trainset, 'train_data.pkl')
-    joblib.dump(testset, 'test_data.pkl')
+    joblib.dump(trainset, 'train_data_full.pkl')
+    joblib.dump(testset, 'test_data_full.pkl')
