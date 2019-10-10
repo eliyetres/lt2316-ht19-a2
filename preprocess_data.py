@@ -1,5 +1,6 @@
 import csv
 import torch
+import joblib
 from nltk.tokenize import word_tokenize
 from gensim.models import KeyedVectors
 from sklearn.model_selection import train_test_split
@@ -33,19 +34,19 @@ def split_data(sentences, size=0.2):
     test_dict = {}
     train_dict = {}
 
-    #Sentences is a dictionary, keys are integers                                                                                                                                                       
+    # Sentences is a dictionary, keys are integers
     sentence_keys = list(sentences.keys())
     print("Total length of sentences: ".format(len(sentences)))
 
-    #Splitting data into sets
+    # Splitting data into sets
     print("Splitting data into training and tests sets...")
-    trainset, testset  = train_test_split(sentence_keys, test_size=size)
+    trainset, testset = train_test_split(sentence_keys, test_size=size)
 
-    #Printing the lengths of the sets
+    # Printing the lengths of the sets
     print("Length of training set: {}".format(len(trainset)))
     print("Length of test set: {}".format(len(testset)))
-    
-    #Putting the corresponding values into the new sets as dictionaries
+
+    # Putting the corresponding values into the new sets as dictionaries
     for k in trainset:
         train_dict[k] = sentences[k]
 
@@ -85,7 +86,7 @@ if __name__ == '__main__':
                     next_sent, w2v_model)
                 vectorized_data[index]['boundary'] = config.BOUNDARY_TO_INT_MAPPING[
                     boundary.strip()]
-                
+
                 # set prev_sent to current sentence. And get boundary from this record too
                 prev_sent = next_sent
                 boundary = row[1]
@@ -93,8 +94,12 @@ if __name__ == '__main__':
                 # means we have reached the last row
                 break
 
-        #Default test size
-        test_size = 0.2
-        print("Splitting data into training and testing sets, {}/{}.".format(round(100-(test_size*100)), round(test_size*100)))
-        trainset, testset  = split_data(vectorized_data, test_size)
-        print(testset)
+    # Default test size
+    test_size = 0.2
+    print("Splitting data into training and testing sets, {}/{}.".format(
+        round(100 - (test_size * 100)), round(test_size * 100)))
+    trainset, testset = split_data(vectorized_data, test_size)
+    print(testset)
+
+    joblib.dump(trainset, 'train_data.pkl')
+    joblib.dump(testset, 'test_data.pkl')
