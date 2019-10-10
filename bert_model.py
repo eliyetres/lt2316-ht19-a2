@@ -159,7 +159,7 @@ if __name__ == '__main__':
         input_ids, segment_masks, attention_masks, labels = batch
         with torch.no_grad():
             logits = model(input_ids, token_type_ids=segment_masks,
-                           attention_mask=attention_masks, labels=labels)
+                           attention_mask=attention_masks)
 
         logits = logits.detach().cpu().numpy()
         label_ids = labels.to('cpu').numpy()
