@@ -1,13 +1,46 @@
+import csv
 import torch
 from torch.nn.utils.rnn import pad_sequence
-from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler
-from pytorch_pretrained_bert import BertTokenizer, BertConfig
+from torch.utils.data import TensorDataset, DataLoader, RandomSampler
+from pytorch_pretrained_bert import BertTokenizer
 from pytorch_pretrained_bert import BertAdam, BertForSequenceClassification
-from tqdm import tqdm, trange
+from sklearn.model_selection import train_test_split
+from tqdm import trange
 import numpy as np
 import joblib
 
 import config
+
+
+def read_data_from_csv(filename):
+    data = {}
+    with open(filename, 'r') as rfile:
+        reader = csv.reader(rfile)
+        for index, row in enumerate(reader):
+            try:
+                if index % 500 == 0 and index > 0:
+                    print("{} rows processed!".format(index))
+                if index == 0:
+                    continue
+                if index == 1:
+                    prev_sent = row[0]
+                    boundary = row[1]
+                    continue
+                next_sent = row[0]
+
+                data[index] = {}
+                data[index]['sent1'] = prev_sent
+                data[index]['sent2'] = next_sent
+                data[index]['boundary'] = config.BOUNDARY_TO_INT_MAPPING[
+                    boundary.strip()]
+
+                # set prev_sent to current sentence. And get boundary from this record too
+                prev_sent = next_sent
+                boundary = row[1]
+            except IndexError as e:
+                break
+
+    return data
 
 
 def combine_sents_bert_style(sent1, sent2):
@@ -92,9 +125,26 @@ def flat_accuracy(preds, labels):
 if __name__ == '__main__':
     # train_data is the same thing as the train_data and test_data outputs from preprocess_data, just pickled
     # This helps avoid having to run the preprocess_data script everytime
-    print("Loading data and models...")
-    train_data = joblib.load('train_data.pkl')
-    test_data = joblib.load('test_data.pkl')
+    print("Loading data...")
+    data = read_data_from_csv(config.CSV_FILENAME)
+
+    # do train-test split
+    train_keys, test_keys = train_test_split(
+        list(data.keys()), test_size=0.2, shuffle=True)
+
+    # create train and test dicts
+    train_data, test_data = {}, {}
+    for key in train_keys:
+        train_data[key] = data[key]
+
+    for key in test_keys:
+        test_data[key] = data[key]
+
+    del data
+
+    print("Loading models...")
+    # train_data = joblib.load('train_data.pkl')
+    # test_data = joblib.load('test_data.pkl')
     tokenizer = BertTokenizer.from_pretrained(
         'bert-base-uncased', do_lower_case=True)
     # initialize the model with 2 output classes
