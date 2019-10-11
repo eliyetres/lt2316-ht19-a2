@@ -61,7 +61,7 @@ def process_data_tags(tag, dirname):
 
 
 def post_process(words, bound):
-
+    
     new_words = []
     new_bound = []
 
@@ -69,8 +69,15 @@ def post_process(words, bound):
     for i in range(0, len(words) - 2):
         # Loops with two sentences at a time to see if they
         # contain the given expressions
-        if(check_expression(words[i], words[i + 1])):
-            new_w = words[i] + ' ' + words[i + 1]
+
+        # replaces british spelling with american
+        sent1, sent2 = replace_british_words(words[i]), replace_british_words(words[i + 1])
+        # replaces british compound words with american
+        sent1, sent2 = replace_compound_words(sent1), replace_compound_words(sent2)
+        sent1, sent2 = remove_characters(sent1),remove_characters(sent2)
+
+        if(check_expression(sent1, sent2)):
+            new_w = sent1 + ' ' + sent2
             new_b = bound[i + 1]
 
             # Print lines found by an expression
@@ -78,17 +85,52 @@ def post_process(words, bound):
 
             # Replace next index in sentence list with the concatenation of current and next
             # Don't need to replace tag since we want the last value and it's already at this index
-            words[i + 1] = new_w
+            sent2 = new_w
+
+        
 
         else:
             # Write complete sentences and their boundaries to the lists
-            new_words.append(words[i])
+            new_words.append(sent1)
             new_bound.append(bound[i])
 
     # Write last to new list since it's disregarded from the loop
     new_words.append(words[len(words) - 1])
 
     return new_words, new_bound
+
+
+def replace_british_words(sentence):
+    gb_to_am = {
+        "programme":"program",
+        "organisations": "organizations",
+        "reconceptualisation": "reconceptualization",
+        "real-time": "realtime",
+        "enrolment": "enrollment",
+        "recognises":"recognizes",
+        "modernisation": "modernization",
+        "recognise": "recognize",
+        "e-mail":"email",
+        "realise":"realize",
+        "co-operation": "cooperation",
+        "centres":"centers"
+  
+    }
+    if any(check in sentence for check in gb_to_am.keys()):
+        for word in sentence.split():
+            if word in gb_to_am.keys(): 
+                sentence=sentence.replace(word, gb_to_am[word])  
+    return sentence
+
+def replace_compound_words(sentence):
+    compounds = ["shortly-well","hardest-to-help", "not-for-profit", "one-size-fits-all","no-strike","hardest-to-reach","mini-benefits","budgets-it","made-mistakes","review-more","billion-which","anyway-but","pay-as-you-earn","non-manual","that-but","Whitehall-there","Whitehall-as","Whitehall-there"]
+    if any(check in sentence for check in compounds):
+        sentence = "".join([w.replace("-"," ") for w in sentence]) 
+    return sentence
+
+def remove_characters(sentence):
+    sentence = sentence.replace("â€", "")
+    return sentence
 
 
 def check_expression(sent1, sent2):
