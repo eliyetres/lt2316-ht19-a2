@@ -125,13 +125,17 @@ def replace_british_words(sentence):
     return sentence
 
 def replace_compound_words(sentence):
-    compounds = ["shortly-well","hardest-to-help", "not-for-profit", "one-size-fits-all","no-strike","hardest-to-reach","mini-benefits","budgets-it","made-mistakes","review-more","billion-which","anyway-but","pay-as-you-earn","non-manual","that-but","Whitehall-there","Whitehall-as","Whitehall-there"]
+    compounds = ["shortly-well","hardest-to-help", "not-for-profit", "one-size-fits-all","no-strike","hardest-to-reach","mini-benefits","budgets-it","made-mistakes","review-more","billion-which","anyway-but","pay-as-you-earn","non-manual","that-but","Whitehall-there","Whitehall-as","Whitehall-there",'counter-terrorism','write-up', 
+    'cross-Government','long-term', 'non-governmental',
+    'cross-party','medium-term', 'five-member',
+    'Afghan-Pakistan','post-election','re-elected',
+    'power-sharing', 'in-work','no-strike','full-scale','non-essential', 'so-called', 'anti-democratic','in-country']
     if any(check in sentence for check in compounds):
         sentence = "".join([w.replace("-"," ") for w in sentence]) 
     return sentence
 
 def remove_characters(sentence):
-    sentence = sentence.replace("â€", "")
+    sentence = re.sub("[\[\'\?\;\:\]\[\]\)\”\,\.]|``|Â£50|Â£1|â€", "",sentence)
     return sentence
 
 
