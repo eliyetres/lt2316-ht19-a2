@@ -18,7 +18,11 @@ def read_data_from_csv(filename):
         reader = csv.reader(rfile)
         for index, row in enumerate(reader):
             try:
-                if index % 5000 == 0 and index > 0:
+                # stop at 100,000 records
+                if index > 100000:
+                    break
+
+                if index % 10000 == 0 and index > 0:
                     print("{} rows processed!".format(index))
                 if index == 0:
                     continue
