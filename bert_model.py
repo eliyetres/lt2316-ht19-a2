@@ -85,7 +85,7 @@ def create_segment_masks(preprocessed_train_data, max_sent_len):
 
 
 def prepare_data(data, tokenizer):
-    max_sent_len = 500
+    max_sent_len = 128
     print("\tTokenizing data...")
     preprocessed_data, labels = preprocess_sents_bert_style(
         data, tokenizer, max_sent_len)
