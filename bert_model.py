@@ -102,7 +102,7 @@ def prepare_data(data, tokenizer):
                                 for x in input_ids], batch_first=True)
     # create segment masks for separating two sentences
     segment_masks = create_segment_masks(
-        preprocessed_data, max_sent_len)
+        preprocessed_data, padded_seqs.size(1))
 
     # create attention masks
     attention_masks = []
