@@ -19,7 +19,7 @@ def read_data_from_csv(filename):
         for index, row in enumerate(reader):
             try:
                 # stop at 50,000 records
-                if index > 10000:
+                if index > config.BERT_NUM_RECORDS:
                     break
 
                 if index % 10000 == 0 and index > 0:
@@ -84,8 +84,7 @@ def create_segment_masks(preprocessed_train_data, max_sent_len):
     return segment_masks
 
 
-def prepare_data(data, tokenizer):
-    max_sent_len = 128
+def prepare_data(data, tokenizer, max_sent_len):
     print("\tTokenizing data...")
     preprocessed_data, labels = preprocess_sents_bert_style(
         data, tokenizer, max_sent_len)
@@ -179,10 +178,11 @@ if __name__ == '__main__':
 
     # INPUTS
     print("Preparing training data...")
-    train_dataloader = prepare_data(train_data, tokenizer)
+    max_sent_len = config.BERT_MAX_SENT_LEN
+    train_dataloader = prepare_data(train_data, tokenizer, max_sent_len)
 
     print("Preparing testing data...")
-    test_dataloader = prepare_data(test_data, tokenizer)
+    test_dataloader = prepare_data(test_data, tokenizer, max_sent_len)
 
     # TRAINING
     print("Training the model...")
