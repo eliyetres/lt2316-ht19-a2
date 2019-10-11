@@ -19,7 +19,7 @@ def read_data_from_csv(filename):
         for index, row in enumerate(reader):
             try:
                 # stop at 50,000 records
-                if index > 50000:
+                if index > 10000:
                     break
 
                 if index % 10000 == 0 and index > 0:
