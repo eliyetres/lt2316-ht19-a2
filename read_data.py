@@ -113,7 +113,9 @@ def replace_british_words(sentence):
         "e-mail":"email",
         "realise":"realize",
         "co-operation": "cooperation",
-        "centres":"centers"
+        "centres":"centers",
+        "untrammelled":"untrammeled",
+        "re-tally":"retally"
   
     }
     if any(check in sentence for check in gb_to_am.keys()):
