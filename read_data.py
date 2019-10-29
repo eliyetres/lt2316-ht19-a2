@@ -61,12 +61,12 @@ def process_data_tags(tag, dirname):
 
 
 def post_process(words, bound):
-    
+
     new_words = []
     new_bound = []
 
     #-1 because the last boundary is removed
-    for i in range(0, len(words) - 2):
+    for i in range(0, len(words) - 1):
         # Loops with two sentences at a time to see if they
         # contain the given expressions
 
@@ -74,8 +74,14 @@ def post_process(words, bound):
         sent1, sent2 = replace_british_words(words[i]), replace_british_words(words[i + 1])
         # replaces british compound words with american
         sent1, sent2 = replace_compound_words(sent1), replace_compound_words(sent2)
-        sent1, sent2 = remove_characters(sent1),remove_characters(sent2)
+        sent1, sent2 = remove_characters(sent1), remove_characters(sent2)
 
+        if len(sent1) == 0:
+            continue
+        # if len(sent1) == 0:
+        #     print(words[i])
+        # if len(sent2) == 0:
+        #     print(words[i + 1])
         if(check_expression(sent1, sent2)):
             new_w = sent1 + ' ' + sent2
             new_b = bound[i + 1]
@@ -86,8 +92,6 @@ def post_process(words, bound):
             # Replace next index in sentence list with the concatenation of current and next
             # Don't need to replace tag since we want the last value and it's already at this index
             sent2 = new_w
-
-        
 
         else:
             # Write complete sentences and their boundaries to the lists
@@ -102,40 +106,42 @@ def post_process(words, bound):
 
 def replace_british_words(sentence):
     gb_to_am = {
-        "programme":"program",
+        "programme": "program",
         "organisations": "organizations",
         "reconceptualisation": "reconceptualization",
         "real-time": "realtime",
         "enrolment": "enrollment",
-        "recognises":"recognizes",
+        "recognises": "recognizes",
         "modernisation": "modernization",
         "recognise": "recognize",
-        "e-mail":"email",
-        "realise":"realize",
+        "e-mail": "email",
+        "realise": "realize",
         "co-operation": "cooperation",
-        "centres":"centers",
-        "untrammelled":"untrammeled",
-        "re-tally":"retally"
-  
+        "centres": "centers",
+        "untrammelled": "untrammeled",
+        "re-tally": "retally"
+
     }
     if any(check in sentence for check in gb_to_am.keys()):
         for word in sentence.split():
-            if word in gb_to_am.keys(): 
-                sentence=sentence.replace(word, gb_to_am[word])  
+            if word in gb_to_am.keys():
+                sentence = sentence.replace(word, gb_to_am[word])
     return sentence
+
 
 def replace_compound_words(sentence):
-    compounds = ["shortly-well","hardest-to-help", "not-for-profit", "one-size-fits-all","no-strike","hardest-to-reach","mini-benefits","budgets-it","made-mistakes","review-more","billion-which","anyway-but","pay-as-you-earn","non-manual","that-but","Whitehall-there","Whitehall-as","Whitehall-there",'counter-terrorism','write-up', 
-    'cross-Government','long-term', 'non-governmental',
-    'cross-party','medium-term', 'five-member',
-    'Afghan-Pakistan','post-election','re-elected',
-    'power-sharing', 'in-work','no-strike','full-scale','non-essential', 'so-called', 'anti-democratic','in-country']
+    compounds = ["shortly-well", "hardest-to-help", "not-for-profit", "one-size-fits-all", "no-strike", "hardest-to-reach", "mini-benefits", "budgets-it", "made-mistakes", "review-more", "billion-which", "anyway-but", "pay-as-you-earn", "non-manual", "that-but", "Whitehall-there", "Whitehall-as", "Whitehall-there", 'counter-terrorism', 'write-up',
+                 'cross-Government', 'long-term', 'non-governmental',
+                 'cross-party', 'medium-term', 'five-member',
+                 'Afghan-Pakistan', 'post-election', 're-elected',
+                 'power-sharing', 'in-work', 'no-strike', 'full-scale', 'non-essential', 'so-called', 'anti-democratic', 'in-country']
     if any(check in sentence for check in compounds):
-        sentence = "".join([w.replace("-"," ") for w in sentence]) 
+        sentence = "".join([w.replace("-", " ") for w in sentence])
     return sentence
 
+
 def remove_characters(sentence):
-    sentence = re.sub("[\[\'\?\;\:\]\[\]\)\”\,\.]|``|Â£50|Â£1|â€", "",sentence)
+    sentence = re.sub("[\[\'\?\;\:\]\[\]\)\”\,\.]|``|Â£50|Â£1|â€", "", sentence)
     return sentence
 
 
@@ -165,6 +171,7 @@ def check_expression(sent1, sent2):
     # Where the first sentence ends with a quotation mark and second is lowercase
     elif sent1.endswith('\"') and sent2[:1].islower():
         return True
+    return False
 
 
 def print_check(i1, sent1, bound1, i2, sent2, bound2, new_w, new_b):

@@ -26,7 +26,7 @@ def get_sent_embedding(sent, model):
     for token in tokens:
         token_embedding = get_word_embedding(token, model)
         sent_embedding.append(token_embedding)
-    return torch.Tensor(sent_embedding)
+    return torch.stack([torch.Tensor(a) for a in sent_embedding])
 
 
 def split_data(sentences, size=0.2):
@@ -63,13 +63,19 @@ if __name__ == '__main__':
 
     print("Getting sentence embeddings...")
     # with open(config.CSV_FILENAME, 'r') as rfile:
+    # rows_to_process = 10000
     with open(config.CSV_FILENAME, 'r') as rfile:
         reader = csv.reader(rfile)
         for index, row in enumerate(reader):
             try:
                 if index == 0:
-                    print("index = 0")
                     continue
+
+                if index % 1000:
+                    print("\t%d rows processed!" % index)
+
+                # if index > rows_to_process:
+                #     break
                 # if first record, save the sent and boundary, move on to next record
                 if index == 1:
                     prev_sent = row[0]
