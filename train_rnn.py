@@ -1,12 +1,13 @@
+import joblib
+import torch
 import torch.nn as nn
 import torch.optim as optim
-import torch
-from torch.utils import data
 from torch.optim import Adam
+from torch.utils import data
+
 import config
-from rnn import SpeakerRNN, SpeakerClassifier
 from dataset import Dataset
-import joblib
+from rnn import SpeakerClassifier, SpeakerRNN
 
 # CUDA settings
 use_cuda = torch.cuda.is_available()
@@ -55,6 +56,7 @@ training_generator2 = data.DataLoader(training_set2, **params)
 
 print("Initializing models...")
 model1 = SpeakerRNN(
+    device=device,
     emb_size=first_sentences[0].shape[1],
     hidden_size=config.RNN_HIDDEN_SIZE,
     num_classes=1,
@@ -66,6 +68,7 @@ model1 = SpeakerRNN(
 optimizer1 = Adam(model1.parameters(), lr=0.0001)
 
 model2 = SpeakerRNN(
+    device=device,
     emb_size=second_sentences[0].shape[1],
     hidden_size=config.RNN_HIDDEN_SIZE,
     num_classes=1,
@@ -79,16 +82,35 @@ optimizer2 = Adam(model2.parameters(), lr=0.0001)
 classifier = SpeakerClassifier(config.RNN_HIDDEN_SIZE * 2, 1)
 criterion = nn.BCELoss()
 
+# move to GPU
+model1.to(device)
+model2.to(device)
+classifier.to(device)
+criterion.to(device)
+
+model1.train()
+model2.train()
 print("Training the model...")
 for epoch in range(config.RNN_NUM_EPOCHS):
-    print("Epoch: {}".format(epoch))
+    print("Epoch: {}".format(epoch+1))
     epoch_loss = 0.0
     for (batch_seq_1, batch_label_1), (batch_seq_2, batch_label_2) in zip(training_generator1, training_generator2):
         if batch_seq_1.size()[0] != config.RNN_BATCH_SIZE or batch_seq_2.size()[0] != config.RNN_BATCH_SIZE:
             continue
+        
+        # push to GPU
+        batch_seq_1 = batch_seq_1.to(device)
+        batch_label_1 = batch_label_1.to(device)
+        batch_seq_2 = batch_seq_2.to(device)
+        batch_label_2 = batch_label_2.to(device)
 
         output1, hidden1 = model1(batch_seq_1)
         output2, hidden2 = model2(batch_seq_2)
+        # push to GPU
+        output1=output1.to(device)
+        output2=output2.to(device)
+        hidden1=hidden1.to(device)
+        hidden2=hidden2.to(device)
 
         hidden1 = hidden1.squeeze(dim=0)
         hidden2 = hidden2.squeeze(dim=0)
@@ -101,6 +123,7 @@ for epoch in range(config.RNN_NUM_EPOCHS):
 
         # need to reshape this for BCELoss
         batch_label = batch_label_1.view(-1, 1).float()
+        batch_label.to(device)
         loss = criterion(output, batch_label)
         epoch_loss += loss.item()
         loss.backward()

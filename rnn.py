@@ -1,6 +1,7 @@
-import torch.nn as nn
 import torch
+import torch.nn as nn
 import torch.optim as optim
+
 import config
 
 # class RNN(nn.Module):
@@ -76,8 +77,9 @@ import config
 
 
 class SpeakerRNN(nn.Module):
-    def __init__(self, emb_size, hidden_size, num_classes, seq_len, batch_size, num_layers, bidirectionality=False):
+    def __init__(self, device, emb_size, hidden_size, num_classes, seq_len, batch_size, num_layers, bidirectionality=False):
         super().__init__()
+        self.device=device
         self.emb_size = emb_size
         self.hidden_size = hidden_size
         self.output_size = num_classes
@@ -92,11 +94,14 @@ class SpeakerRNN(nn.Module):
 
     def forward(self, sequence):
         hidden_layer = self.init_hidden(self.batch_size)
+        hidden_layer.to(self.device)
         output, hidden = self.gru(sequence, hidden_layer)
         # output = output.contiguous().view(-1, self.hidden_size * sequence.shape[1])
         # output = self.output(output)
         # output = self.sigmoid(output)
         # return output
+        output.to(self.device)
+        hidden.to(self.device)
         return output, hidden
 
     def init_hidden(self, batch_size):
@@ -104,13 +109,13 @@ class SpeakerRNN(nn.Module):
         #     torch.zeros(self.num_layers, batch_size, self.hidden_size).float(),
         #     torch.zeros(self.num_layers, batch_size, self.hidden_size).float()
         # )
-        return torch.zeros(self.num_layers, batch_size, self.hidden_size).float()
+        return torch.zeros(self.num_layers, batch_size, self.hidden_size).float().to(self.device)
 
 
 class SpeakerClassifier(nn.Module):
     def __init__(self, input_size, output_size):
         super().__init__()
-        self.output = nn.Linear(input_size, output_size)
+        self.output = nn.Linear(input_size, output_size) 
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, input):
