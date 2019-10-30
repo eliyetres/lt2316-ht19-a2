@@ -4,7 +4,7 @@ import torch
 from torch.utils import data
 from torch.optim import Adam
 import config
-from rnn import SpeakerRNN
+from rnn import SpeakerRNN, SpeakerClassifier
 from dataset import Dataset
 import joblib
 
@@ -53,7 +53,7 @@ training_generator2 = data.DataLoader(training_set2, **params)
 
 # Azfar
 
-print("Initializing model...")
+print("Initializing models...")
 model1 = SpeakerRNN(
     emb_size=first_sentences[0].shape[1],
     hidden_size=config.RNN_HIDDEN_SIZE,
@@ -64,18 +64,43 @@ model1 = SpeakerRNN(
     bidirectionality=False
 )
 optimizer1 = Adam(model1.parameters(), lr=0.0001)
+
+model2 = SpeakerRNN(
+    emb_size=second_sentences[0].shape[1],
+    hidden_size=config.RNN_HIDDEN_SIZE,
+    num_classes=1,
+    seq_len=second_sentences[0].shape[0],
+    batch_size=config.RNN_BATCH_SIZE,
+    num_layers=1,
+    bidirectionality=False
+)
+optimizer2 = Adam(model2.parameters(), lr=0.0001)
+
+classifier = SpeakerClassifier(config.RNN_HIDDEN_SIZE * 2, 1)
 criterion = nn.BCELoss()
 
 print("Training the model...")
 for epoch in range(config.RNN_NUM_EPOCHS):
     print("Epoch: {}".format(epoch))
     epoch_loss = 0.0
-    for batch_seq, batch_label in training_generator1:
-        if batch_seq.size()[0] != config.RNN_BATCH_SIZE:
+    for (batch_seq_1, batch_label_1), (batch_seq_2, batch_label_2) in zip(training_generator1, training_generator2):
+        if batch_seq_1.size()[0] != config.RNN_BATCH_SIZE or batch_seq_2.size()[0] != config.RNN_BATCH_SIZE:
             continue
-        output = model1(batch_seq)
-        # need to rehsape this for BCELoss
-        batch_label = batch_label.view(-1, 1).float()
+
+        output1, hidden1 = model1(batch_seq_1)
+        output2, hidden2 = model2(batch_seq_2)
+
+        hidden1 = hidden1.squeeze(dim=0)
+        hidden2 = hidden2.squeeze(dim=0)
+
+        combined_output = torch.cat((hidden1, hidden2), dim=1)
+        # print(combined_output.size())
+
+        # combined_output = combined_output.view(-1, config.RNN_BATCH_SIZE * config.RNN_HIDDEN_SIZE * 2)
+        output = classifier(combined_output)
+
+        # need to reshape this for BCELoss
+        batch_label = batch_label_1.view(-1, 1).float()
         loss = criterion(output, batch_label)
         epoch_loss += loss.item()
         loss.backward()
