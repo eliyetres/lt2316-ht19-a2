@@ -1,3 +1,5 @@
+from pickle import dump
+
 import joblib
 import torch
 import torch.nn as nn
@@ -79,7 +81,7 @@ model2 = SpeakerRNN(
 )
 optimizer2 = Adam(model2.parameters(), lr=0.0001)
 
-classifier = SpeakerClassifier(config.RNN_HIDDEN_SIZE * 2, 1)
+classifier = SpeakerClassifier(device,config.RNN_HIDDEN_SIZE * 2, 1)
 criterion = nn.BCELoss()
 
 # move to GPU
@@ -96,21 +98,16 @@ for epoch in range(config.RNN_NUM_EPOCHS):
     epoch_loss = 0.0
     for (batch_seq_1, batch_label_1), (batch_seq_2, batch_label_2) in zip(training_generator1, training_generator2):
         if batch_seq_1.size()[0] != config.RNN_BATCH_SIZE or batch_seq_2.size()[0] != config.RNN_BATCH_SIZE:
-            continue
-        
+            continue   
         # push to GPU
-        batch_seq_1 = batch_seq_1.to(device)
-        batch_label_1 = batch_label_1.to(device)
-        batch_seq_2 = batch_seq_2.to(device)
-        batch_label_2 = batch_label_2.to(device)
+        batch_seq_1,batch_seq_2 = batch_seq_1.to(device), batch_seq_2.to(device)
+        batch_label_1, batch_label_2 = batch_label_1.to(device), batch_label_2.to(device)
 
         output1, hidden1 = model1(batch_seq_1)
         output2, hidden2 = model2(batch_seq_2)
         # push to GPU
-        output1=output1.to(device)
-        output2=output2.to(device)
-        hidden1=hidden1.to(device)
-        hidden2=hidden2.to(device)
+        output1,output2=output1.to(device),output2.to(device)
+        hidden1,hidden2=hidden1.to(device),hidden2.to(device)
 
         hidden1 = hidden1.squeeze(dim=0)
         hidden2 = hidden2.squeeze(dim=0)
@@ -130,6 +127,17 @@ for epoch in range(config.RNN_NUM_EPOCHS):
         optimizer1.step()
     print("Loss: {}".format(epoch_loss))
     print()
+
+# Save model to disk
+with open("trained_model_1.pkl", 'wb+') as tmf1:
+    dump(model1, tmf1)
+# Save model to disk
+with open("trained_model_2.pkl", 'wb+') as tmf2:
+    dump(model2, tmf2)
+# Save model to disk
+with open("classifier.pkl", 'wb+') as tmf3:
+    dump(classifier, tmf3)
+
 
 # Sandra
 # One vocab for all sentences (should perhaps be in another file)
