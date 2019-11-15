@@ -29,6 +29,9 @@ def read_data_from_csv(filename):
                 'boundary': row[2]
             })
 
+            if index > 50:
+                break
+
     return training_data
 
 
@@ -37,10 +40,10 @@ def get_word_vector(token, model):
     if token == '0':
         return torch.zeros(300)
     try:
-        return model[token]
+        return torch.Tensor(model[token])
     except KeyError:
         try:
-            return model[token.lower()]
+            return torch.Tensor(model[token.lower()])
         except KeyError:
             return torch.Tensor(config.UNKNOWN_WORD_VECTOR)
 
@@ -51,7 +54,7 @@ def generate_sent_vector(sent, model):
         word_vector = get_word_vector(token, model)
         sent_vector.append(word_vector)
 
-    return sent_vector
+    return torch.stack(sent_vector)
 
 
 def generate_batch_vectors(sent_batch, model):
@@ -66,7 +69,7 @@ def generate_batch_vectors(sent_batch, model):
         sent_vector = generate_sent_vector(sent, model)
         sent_vectors.append(sent_vector)
 
-    return sent_vectors
+    return torch.stack(sent_vectors)
 
 
 def get_boundary_mapping(boundary_batch):
@@ -135,8 +138,8 @@ if __name__ == '__main__':
             sent2_batch_vectors = generate_batch_vectors(sent2_batch, w2v_model)
             boundary_batch = get_boundary_mapping(boundary_batch)
 
-            sent1_batch_vectors = torch.Tensor(sent1_batch_vectors).to(device)
-            sent2_batch_vectors = torch.Tensor(sent2_batch_vectors).to(device)
+            sent1_batch_vectors = sent1_batch_vectors.to(device)
+            sent2_batch_vectors = sent2_batch_vectors.to(device)
             boundary_batch = torch.Tensor(boundary_batch).to(device)
 
             output1, hidden1 = model1(sent1_batch_vectors)
