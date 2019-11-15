@@ -89,9 +89,9 @@ if __name__ == '__main__':
         batch_size=config.RNN_BATCH_SIZE,
         shuffle=True
     )
-    device = torch.device(config.DEVICE)
 
     print("Initializing models...")
+    device = torch.device(config.DEVICE)
     model1 = SpeakerRNN(
         device=device,
         emb_size=300,
@@ -101,6 +101,7 @@ if __name__ == '__main__':
         num_layers=1,
         bidirectionality=False
     )
+    model1 = model1.to(device)
     optimizer1 = Adam(model1.parameters(), lr=0.0001)
 
     model2 = SpeakerRNN(
@@ -112,6 +113,7 @@ if __name__ == '__main__':
         num_layers=1,
         bidirectionality=False
     )
+    model2 = model2.to(device)
     optimizer2 = Adam(model2.parameters(), lr=0.0001)
 
     classifier = SpeakerClassifier(
