@@ -29,7 +29,7 @@ def read_data_from_csv(filename):
                 'boundary': row[2]
             })
 
-            if index > 50:
+            if index > config.RNN_NUM_RECORDS:
                 break
 
     return training_data
