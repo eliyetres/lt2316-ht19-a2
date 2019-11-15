@@ -4,6 +4,7 @@ import csv
 import nltk.data
 import nltk.tokenize.punkt
 import xml.etree.ElementTree as ET
+from sklearn.model_selection import train_test_split
 
 import config
 
@@ -181,18 +182,20 @@ def print_check(i1, sent1, bound1, i2, sent2, bound2, new_w, new_b):
     print('\n')
 
 
-def write_sents_to_csv(sentences, filename):
+def write_sents_to_csv(sentences, boundaries, filename):
     with open(filename, 'w', encoding="utf-8") as wfile:
         writer = csv.writer(wfile)
         # write header
         writer.writerow(["Sentence 1", "Sentence 2", "Boundary"])
-        for index in range(0, len(sentences), 2):
+        for index in range(0, len(sentences)):
             try:
                 sent1 = sentences[index]
-                boundary = sentences[index + 1][1:][:-1]
-                sent2 = sentences[index + 2]
+                sent2 = sentences[index + 1]
+                boundary = boundaries[index]
                 writer.writerow([sent1, sent2, boundary])
             except IndexError:
+                # this means we have reached the last sentence in the file, which doesn't have a following
+                # sentence or boundary
                 pass
 
 
@@ -217,10 +220,20 @@ print("Lengths of sentence and boundaries lists after post processing:")
 print(len(words2))
 print(len(bound2))
 
-#df = pd.DataFrame(list(zip(words, bound)), columns =['Sentence', "Boundary"])
-df = pd.DataFrame(list(zip(words2, bound2)), columns=['Sentence', "Boundary"])
+split_index = int(0.8 * len(words2))
+
+train_words = words2[:split_index]
+test_words = words2[split_index:]
+
+train_bounds = bound2[:split_index]
+test_bounds = bound2[split_index:]
+
+# df_train = pd.DataFrame(list(zip(train_words, train_bounds)), columns=['Sentence', "Boundary"])
+# df_test = pd.DataFrame(list(zip(test_words, test_bounds)), columns=['Sentence', "Boundary"])
 
 print("Writing data to csv...")
-df.to_csv(config.CSV_FILENAME, index=False, encoding='utf-8')
-#write_sents_to_csv(sentences, config.CSV_FILENAME)
+# df_train.to_csv(config.CSV_FILENAME_TRAIN, index=False, encoding='utf-8')
+# df_test.to_csv(config.CSV_FILENAME_TEST, index=False, encoding='utf-8')
+write_sents_to_csv(train_words, train_bounds, config.CSV_FILENAME_TRAIN)
+write_sents_to_csv(test_words, test_bounds, config.CSV_FILENAME_TEST)
 print("Done writing data to csv.")
