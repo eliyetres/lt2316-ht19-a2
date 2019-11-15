@@ -29,9 +29,6 @@ def read_data_from_csv(filename):
                 'boundary': row[2]
             })
 
-            if index > 20:
-                break
-
     return training_data
 
 
