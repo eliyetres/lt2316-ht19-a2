@@ -121,6 +121,7 @@ if __name__ == '__main__':
         input_size=config.RNN_HIDDEN_SIZE * 2,
         output_size=1
     )
+    classifier = classifier.to(device)
     criterion = nn.BCELoss()
 
     print("Training model...")
