@@ -85,10 +85,12 @@ class SpeakerRNN(nn.Module):
         self.batch_size = batch_size
         self.bidirectional = bidirectionality
 
-        self.gru = nn.GRU(emb_size, hidden_size, num_layers=self.num_layers, bidirectional=bidirectionality, batch_first=True)
+        self.gru = nn.GRU(emb_size, hidden_size, num_layers=self.num_layers,
+                          bidirectional=bidirectionality, batch_first=True)
 
     def forward(self, sequence):
-        hidden_layer = self.init_hidden(self.batch_size)
+        #hidden_layer = self.init_hidden(self.batch_size)
+        hidden_layer = self.init_hidden(len(sequence))  # should be 32 or 1
         hidden_layer = hidden_layer.to(self.device)
         self.gru.flatten_parameters()
         output, hidden = self.gru(sequence, hidden_layer)
