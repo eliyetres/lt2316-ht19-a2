@@ -183,7 +183,7 @@ def print_check(i1, sent1, bound1, i2, sent2, bound2, new_w, new_b):
 
 
 def write_sents_to_csv(sentences, boundaries, filename):
-    with open(filename, 'w', encoding="utf-8") as wfile:
+    with open(filename, 'w', newline='', encoding="utf-8") as wfile:
         writer = csv.writer(wfile)
         # write header
         writer.writerow(["Sentence 1", "Sentence 2", "Boundary"])
