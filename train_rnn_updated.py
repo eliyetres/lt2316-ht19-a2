@@ -129,6 +129,7 @@ if __name__ == '__main__':
 
     print("Training model...")
     for epoch in range(config.RNN_NUM_EPOCHS):
+        print("Current epoch: {}".format(epoch + 1))
         epoch_loss = 0.0
         for sent1_batch, sent2_batch, boundary_batch in train_generator:
             optimizer1.zero_grad()
