@@ -163,3 +163,7 @@ if __name__ == '__main__':
             optimizer2.step()
         print("Loss: {}".format(epoch_loss))
         print()
+
+    torch.save(model1, 'model_1.pkl')
+    torch.save(model2, 'model_2.pkl')
+    torch.save(classifier, 'classifier.pkl')
