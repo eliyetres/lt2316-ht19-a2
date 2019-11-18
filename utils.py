@@ -12,37 +12,48 @@ def load_model(model_path):
     return model
 
 
-def read_data_from_csv(filename):
-    training_data = []
-    num_change = int(config.RNN_NUM_RECORDS / 2)
-    num_same = num_change + config.RNN_SAME_ADDITIONAL_RECORDS
-    change_records = 0
-    same_records = 0
+def read_data_from_csv(filename, train=True):
+    data = []
+    # only need thsis stuff for generating class-equalized data for training
+    if train is True:
+        num_change = int(config.RNN_NUM_RECORDS / 2)
+        num_same = num_change + config.RNN_SAME_ADDITIONAL_RECORDS
+        change_records = 0
+        same_records = 0
     with open(filename, 'r', encoding='utf8') as rfile:
         reader = csv.reader(rfile)
         for index, row in enumerate(reader):
             if index == 0:
                 continue
 
-            current_boundary = row[2].strip()
+            # if we are generating training data, it should be equalized for SAME and CHANGE
+            if train is True:
+                current_boundary = row[2].strip()
 
-            if (current_boundary == '[SAME]' and same_records < num_same) or \
-                    (current_boundary == '[CHANGE]' and change_records < num_change):
-                training_data.append({
+                if (current_boundary == '[SAME]' and same_records < num_same) or \
+                        (current_boundary == '[CHANGE]' and change_records < num_change):
+                    data.append({
+                        'sent1': row[0].strip(),
+                        'sent2': row[1].strip(),
+                        'boundary': current_boundary
+                    })
+
+                if current_boundary == '[SAME]':
+                    same_records += 1
+                elif current_boundary == '[CHANGE]':
+                    change_records += 1
+
+                if same_records >= num_same and change_records >= num_change:
+                    break
+            # we don't care about equalizing class data in testing data
+            else:
+                data.append({
                     'sent1': row[0].strip(),
                     'sent2': row[1].strip(),
-                    'boundary': current_boundary
+                    'boundary': row[2].strip()
                 })
 
-            if current_boundary == '[SAME]':
-                same_records += 1
-            elif current_boundary == '[CHANGE]':
-                change_records += 1
-
-            if same_records >= num_same and change_records >= num_change:
-                break
-
-    return training_data
+    return data
 
 
 def print_evaluation_score(y_true, y_pred):
