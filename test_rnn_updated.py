@@ -84,7 +84,7 @@ if __name__ == '__main__':
         
         actual.append(corr)
         #if predicted_boundary[0] == boundary:  # correct prediction
-        if predicted_boundary == boundary:  # correct prediction
+        if predicted_boundary.item() == boundary.item():  # correct prediction
             print("Correct")            
             predicted.append(corr)
         else:
