@@ -84,10 +84,11 @@ def generate_sent_vector(sent, model):
     return torch.stack(sent_vector)
 
 
-def generate_batch_vectors(sent_batch, model):
+def generate_batch_vectors(sent_batch, model, max_sent_len=None):
     sent_vectors = []
     sent_batch_tokenized = [word_tokenize(s) for s in sent_batch]
-    max_sent_len = len(max(sent_batch_tokenized, key=lambda x: len(x)))
+    if max_sent_len is None:
+        max_sent_len = len(max(sent_batch_tokenized, key=lambda x: len(x)))
     for sent in sent_batch_tokenized:
         # padding the sentences with 0
         if len(sent) < max_sent_len:
