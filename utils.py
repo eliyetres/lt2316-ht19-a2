@@ -14,17 +14,32 @@ def load_model(model_path):
 
 def read_data_from_csv(filename):
     training_data = []
+    num_change = int(config.RNN_NUM_RECORDS / 2)
+    num_same = num_change + config.RNN_SAME_ADDITIONAL_RECORDS
+    change_records = 0
+    same_records = 0
     with open(filename, 'r', encoding='utf8') as rfile:
         reader = csv.reader(rfile)
         for index, row in enumerate(reader):
             if index == 0:
                 continue
-            training_data.append({
-                'sent1': row[0].strip(),
-                'sent2': row[1].strip(),
-                'boundary': row[2]
-            })
-            if index > config.RNN_NUM_RECORDS:
+
+            current_boundary = row[2].strip()
+
+            if (current_boundary == '[SAME]' and same_records < num_same) or \
+                    (current_boundary == '[CHANGE]' and change_records < num_change):
+                training_data.append({
+                    'sent1': row[0].strip(),
+                    'sent2': row[1].strip(),
+                    'boundary': current_boundary
+                })
+
+            if current_boundary == '[SAME]':
+                same_records += 1
+            elif current_boundary == '[CHANGE]':
+                change_records += 1
+
+            if same_records >= num_same and change_records >= num_change:
                 break
 
     return training_data
