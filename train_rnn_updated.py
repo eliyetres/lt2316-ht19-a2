@@ -41,7 +41,7 @@ if __name__ == '__main__':
         bidirectionality=False
     )
     model1 = model1.to(device)
-    optimizer1 = Adam(model1.parameters(), lr=0.0001)
+    optimizer1 = Adam(model1.parameters(), lr=config.RNN_LEARNING_RATE)
 
     model2 = SpeakerRNN(
         device=device,
@@ -53,7 +53,7 @@ if __name__ == '__main__':
         bidirectionality=False
     )
     model2 = model2.to(device)
-    optimizer2 = Adam(model2.parameters(), lr=0.0001)
+    optimizer2 = Adam(model2.parameters(), lr=config.RNN_LEARNING_RATE)
 
     classifier = SpeakerClassifier(
         device=device,
