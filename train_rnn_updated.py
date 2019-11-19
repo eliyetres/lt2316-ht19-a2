@@ -55,6 +55,7 @@ if __name__ == '__main__':
             hidden_size=config.RNN_HIDDEN_SIZE * 2,
             num_classes=1
         )
+        classifier.to(device)
 
     else:
         model1 = SpeakerRNN(
