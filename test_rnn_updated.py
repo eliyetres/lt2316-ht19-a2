@@ -85,7 +85,6 @@ if __name__ == '__main__':
             sent2_vectors = generate_batch_vectors(sent2, w2v_model)
 
         boundary = get_boundary_mapping(boundary)
-        print("Actual boundary is: {}".format(boundary))
         # to GPU
         sent1_vectors = sent1_vectors.to(device)
         sent2_vectors = sent2_vectors.to(device)
