@@ -64,7 +64,10 @@ if __name__ == '__main__':
     classifier.eval()
 
     print("Evaluating model...")
-    for sent1, sent2, boundary in test_generator:
+    for index, (sent1, sent2, boundary) in enumerate(test_generator):
+
+        if index % 5000 == 0 and index > 0:
+            print("\t{}/{} records processed!".format(index, len(test_data)))
 
         # If the model was trained using attention
         if use_attention is True:
@@ -112,7 +115,7 @@ if __name__ == '__main__':
         b = "SAME" if corr == 0 else "CHANGE"
 
         # Predicted sentence
-        print(sent1, b, sent2)
+        # print(sent1, b, sent2)
 
         actual.append(corr)
         # if predicted_boundary[0] == boundary:  # correct prediction
