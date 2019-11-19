@@ -120,10 +120,10 @@ if __name__ == '__main__':
         actual.append(corr)
         # if predicted_boundary[0] == boundary:  # correct prediction
         if predicted_boundary.item() == boundary.item():  # correct prediction
-            print("Correct")
+            # print("Correct")
             predicted.append(corr)
         else:
-            print("Incorrect")
+            # print("Incorrect")
             predicted.append(pred)
 
     print_evaluation_score(actual, predicted)
