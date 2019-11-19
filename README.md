@@ -21,36 +21,36 @@ Sentence1|Sentence2| Boundary
 
 Words like "hon." are changed to their full word equivalent "honorary" to make sure they match their correct word vector in the gensim model. Some British spelled words were changed to their American equivalent, and hyphens were removed for compound words that were spelled with hyphens in British English but not in American. The rest of the words not found in the gensim model at all were removed from the text. Removing some words resulted in some sentences just being an empty string so in the end, these sentences were also removed after making sure that not too much data was lost.
 
-### Training and test data
+## Training and test data
 
 One problem noticed during training was that there were a lot more records for SAME as opposed to CHANGE.
 This was solved by adding the parameter RNN_SAME_ADDITIONAL_RECORDS to the config file.  Using the parameter its possible to specify how many additional records for the SAME category to select. For example, if RNN_NUM_RECORDS is 10000, that means 5000 for SAME and 5000 for CHANGE. Moreover, if  RNN_SAME_ADDITIONAL_RECORDS=1500, it means there is 5000 for CHANGE but 6500 now for SAME. This leaves us with slightly more records for SAME as opposed to CHANGE. The train- and test data is split into train and testing and saved to two separate csv files which are loaded in the train- and testing scripts. The train data size it the conventional 80% for training data and 20% for test data, and its possible to change this using a parameter in the training script.
 
-### Approach
+## Approach
 
-#### RNN network- and classifier models
+### RNN network- and classifier models
 
 Two models of the same Recurrent network class are created with two optimizers. The criterion used is Binary Cross Entropy, since the possible labels are either 0 or 1 (SAME or NEW). The first sentence is fed into one object, and the second sentence into the other object.  The batches are fetched for both training generators simultaneously, creating the hidden states after the forward pass of both models. The output from both these models are combined by concatenating, e.g. if the output is 300-dimensional and there are two outputs, this would result in a 600-dimensional vector which is fed into another network that contains a linear layer followed by a Sigmoid. This final network is used for the actual classification. Initially two LSTMs were used but was changed to GRU since it returns a single hidden state and is easier to deal with. Some structural changes were also made from the initial RNN, it was concluded to not be a good idea to have the optimizer and criterion inside the class, as that would make the weights not update properly.
 
-#### RNN network model with Attention
+### RNN network model with Attention
 
 The idea of adding an attention mechanism to the RNN network is that attention should help the classifier identify which parts of the concatenated output are important for making the prediction. Ideally, that should be words that signify a change or sameness, like "My honour.". If the first sentence includes these words, it's almost always the same speaker (SAME label).
 The models are created from the same classes as the RNN and classifier models. It passes the concatenated output states of the two RNNs and then applies softmax to them to get probabilities. Then the probabilities are multiplied with the concatenated output to get a weighted output, and is then fed into the linear layer for classification.
 
-#### Bert network model
+### Bert network model
 
 The pre-processed text that was initially saved as a csv is loaded, so the test data is processed the same way as the training data. This helps avoid having to run the preprocess_data script multiple times. Further data processing is made to fit the Bert model. Tokenized sentences are clipped to fit the max size, as well as creating a segment mask for the training data. The segment mask is used to identify whether the input is one sentence or two sentences long. If the model uses one sentence, the mask is simply a sequence of 0s. For two sentence inputs, there is a 0 for each token of the first sentence, followed by a 1 for each token of the second sentence. The labels are binary, and formatted the same way as the RNN model, using 0 or 1.
 
-### Evaluation
+## Evaluation
 
-#### RNN evaluation
+### RNN evaluation
 
 The text is processed in the same way as for the training data. As opposed to to multi-class classification where the class with the highest probability after applying softmax is selected, the prediction for binary classification is computed by getting the probability and check if it's >=0.5 and assign it to class 1, assign it to class 0 otherwise.  The labels for the correct class and the predicted are saved and used to generate a classification report showing precision, recall and f1-score using Sklearn's classification report.
 
-#### Results
+### Results
 
-### Bonuses
+## Bonuses
 
-#### Another method
+### Another method
 
 The third model, RNN with attention mechanism was used for this bonus part.
