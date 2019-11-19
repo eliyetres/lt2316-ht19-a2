@@ -55,7 +55,8 @@ if __name__ == '__main__':
 
     # Set parameters to eval mode
     model1.eval()
-    model2.eval()   
+    model2.eval() 
+    classifier.eval()  
 
     print("Evaluating model...")
     for sent1, sent2, boundary in test_generator:
