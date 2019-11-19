@@ -12,7 +12,7 @@ from utils import generate_batch_vectors, generate_sent_vector, \
     get_boundary_mapping, get_word_vector, load_model, read_data_from_csv
 
 
-use_attention = True
+use_attention = config.USE_ATTENTION
 
 
 if __name__ == '__main__':
