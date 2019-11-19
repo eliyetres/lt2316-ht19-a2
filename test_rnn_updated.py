@@ -13,8 +13,8 @@ from utils import (generate_batch_vectors, generate_sent_vector,
                    get_boundary_mapping, get_word_vector, load_model,
                    print_evaluation_score, read_data_from_csv)
 
-use_attention = config.USE_ATTENTION
 
+use_attention = config.USE_ATTENTION
 # CUDA settings
 use_cuda = torch.cuda.is_available()
 device = torch.device(config.DEVICE)
@@ -26,14 +26,29 @@ if __name__ == '__main__':
 
     # Load trained models and data
     print("Loading models...")
-    if use_attention is True:
-        model1 = torch.load(config.RNN_ATTENTION_MODEL1)
-        model2 = torch.load(config.RNN_ATTENTION_MODEL2)
-        classifier = torch.load(config.RNN_ATTENTION_CLASSIFIER)
+    if use_attention is True and config.RNN_EQUALIZE_CLASS_COUNTS is True:
+        print("\tUsing attention!")
+        print("\tEqualized class counts!")
+        model1 = torch.load(config.RNN_EQ_ATTENTION_MODEL1)
+        model2 = torch.save(config.RNN_EQ_ATTENTION_MODEL2)
+        classifier = torch.save(config.RNN_EQ_ATTENTION_CLASSIFIER)
+
+    elif use_attention is True and config.RNN_EQUALIZE_CLASS_COUNTS is False:
+        print("\tUsing attention!")
+        model1 = torch.save(config.RNN_ATTENTION_MODEL1)
+        model2 = torch.save(config.RNN_ATTENTION_MODEL2)
+        classifier = torch.save(config.RNN_ATTENTION_CLASSIFIER)
+
+    elif use_attention is False and config.RNN_EQUALIZE_CLASS_COUNTS is True:
+        print("\tEqualized class counts!")
+        model1 = torch.save(config.RNN_EQ_MODEL1)
+        model2 = torch.save(config.RNN_EQ_MODEL2)
+        classifier = torch.save(config.RNN_EQ_CLASSIFIER)
+
     else:
-        model1 = torch.load(config.RNN_MODEL1)
-        model2 = torch.load(config.RNN_MODEL2)
-        classifier = torch.load(config.RNN_CLASSIFIER)
+        model1 = torch.save(config.RNN_MODEL1)
+        model2 = torch.save(config.RNN_MODEL2)
+        classifier = torch.save(config.RNN_CLASSIFIER)
 
     print("Loading pre-trained embeddings...")
     w2v_model = load_model(config.PATH_TO_PRETRAINED_EMBEDDINGS)
@@ -67,7 +82,7 @@ if __name__ == '__main__':
     index = 0
     for sent1, sent2, boundary in test_generator:
 
-        if index % 5000 == 0 and index > 0:
+        if index % 30000 == 0 and index > 0:
             print("\t{}/{} records processed!".format(index, len(test_data)))
 
         # If the model was trained using attention
@@ -80,7 +95,7 @@ if __name__ == '__main__':
             sent2_vectors = generate_batch_vectors(sent2, w2v_model, max_sent_len=max_sent_len)
 
         # Model without attention
-        if use_attention is False:
+        else:
             sent1_vectors = generate_batch_vectors(sent1, w2v_model)
             sent2_vectors = generate_batch_vectors(sent2, w2v_model)
 

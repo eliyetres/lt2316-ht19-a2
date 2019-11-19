@@ -20,7 +20,9 @@ if __name__ == '__main__':
     w2v_model = load_model(config.PATH_TO_PRETRAINED_EMBEDDINGS)
 
     print("Loading training data...")
-    train_data = read_data_from_csv(config.CSV_FILENAME_TRAIN, train=True)
+    if config.RNN_EQUALIZE_CLASS_COUNTS is True:
+        print("\tEqualizing class counts!")
+    train_data = read_data_from_csv(config.CSV_FILENAME_TRAIN, train=config.RNN_EQUALIZE_CLASS_COUNTS)
 
     print("\tTotal length of training data: {}".format(len(train_data)))
     print("\tNumber of SAME records: {}".format(len([a for a in train_data if a['boundary'] == '[SAME]'])))
@@ -39,6 +41,7 @@ if __name__ == '__main__':
     device = torch.device(config.DEVICE)
 
     if use_attention is True:
+        print("\tUsing attention!")
         model1 = SpeakerAttentionRNN(
             emb_size=300,
             hidden_size=config.RNN_HIDDEN_SIZE,
@@ -144,10 +147,18 @@ if __name__ == '__main__':
         print("Loss: {}".format(epoch_loss))
         print()
 
-    if use_attention is True:
+    if use_attention is True and config.RNN_EQUALIZE_CLASS_COUNTS is True:
+        torch.save(model1, config.RNN_EQ_ATTENTION_MODEL1)
+        torch.save(model2, config.RNN_EQ_ATTENTION_MODEL2)
+        torch.save(classifier, config.RNN_EQ_ATTENTION_CLASSIFIER)
+    elif use_attention is True and config.RNN_EQUALIZE_CLASS_COUNTS is False:
         torch.save(model1, config.RNN_ATTENTION_MODEL1)
         torch.save(model2, config.RNN_ATTENTION_MODEL2)
         torch.save(classifier, config.RNN_ATTENTION_CLASSIFIER)
+    elif use_attention is False and config.RNN_EQUALIZE_CLASS_COUNTS is True:
+        torch.save(model1, config.RNN_EQ_MODEL1)
+        torch.save(model2, config.RNN_EQ_MODEL2)
+        torch.save(classifier, config.RNN_EQ_CLASSIFIER)
     else:
         torch.save(model1, config.RNN_MODEL1)
         torch.save(model2, config.RNN_MODEL2)
