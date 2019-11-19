@@ -104,30 +104,11 @@ if __name__ == '__main__':
             output = classifier(combined_hidden)
 
         output = output.squeeze(dim=1)
+        pred = int(output.item() >= 0.5)
+        y_true = boundary.item()
 
-        # #################################################
-        # check if it works from here
-        #_, predicted_boundary = torch.max(output.data, dim=1)
-        _, predicted_boundary = torch.max(output.data, dim=0)
-
-        corr = boundary.item()
-        #pred = predicted_boundary[0].item()
-        pred = predicted_boundary.item()
-
-        b = "SAME" if corr == 0 else "CHANGE"
-
-        # Predicted sentence
-        # print(sent1, b, sent2)
-
-        actual.append(corr)
         predicted.append(pred)
-        # if predicted_boundary[0] == boundary:  # correct prediction
-        #if predicted_boundary.item() == boundary.item():  # correct prediction
-            # print("Correct")
-        #    predicted.append(corr)
-        #else:
-            # print("Incorrect")
-        #    predicted.append(pred)
+        actual.append(y_true)
 
         index += 1
 
