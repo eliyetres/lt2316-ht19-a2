@@ -64,7 +64,8 @@ if __name__ == '__main__':
     classifier.eval()
 
     print("Evaluating model...")
-    for index, (sent1, sent2, boundary) in enumerate(test_generator):
+    index = 0
+    for sent1, sent2, boundary in test_generator:
 
         if index % 5000 == 0 and index > 0:
             print("\t{}/{} records processed!".format(index, len(test_data)))
@@ -84,6 +85,7 @@ if __name__ == '__main__':
             sent2_vectors = generate_batch_vectors(sent2, w2v_model)
 
         boundary = get_boundary_mapping(boundary)
+        print("Actual boundary is: {}".format(boundary))
         # to GPU
         sent1_vectors = sent1_vectors.to(device)
         sent2_vectors = sent2_vectors.to(device)
@@ -118,12 +120,15 @@ if __name__ == '__main__':
         # print(sent1, b, sent2)
 
         actual.append(corr)
+        predicted.append(pred)
         # if predicted_boundary[0] == boundary:  # correct prediction
-        if predicted_boundary.item() == boundary.item():  # correct prediction
+        #if predicted_boundary.item() == boundary.item():  # correct prediction
             # print("Correct")
-            predicted.append(corr)
-        else:
+        #    predicted.append(corr)
+        #else:
             # print("Incorrect")
-            predicted.append(pred)
+        #    predicted.append(pred)
+
+        index += 1
 
     print_evaluation_score(actual, predicted)
