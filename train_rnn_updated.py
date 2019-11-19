@@ -144,6 +144,11 @@ if __name__ == '__main__':
         print("Loss: {}".format(epoch_loss))
         print()
 
-    torch.save(model1, 'model_1.pkl')
-    torch.save(model2, 'model_2.pkl')
-    torch.save(classifier, 'classifier.pkl')
+    if use_attention is True:
+        torch.save(model1, config.RNN_ATTENTION_MODEL1)
+        torch.save(model2, config.RNN_ATTENTION_MODEL2)
+        torch.save(classifier, config.RNN_ATTENTION_CLASSIFIER)
+    else:
+        torch.save(model1, config.RNN_MODEL1)
+        torch.save(model2, config.RNN_MODEL2)
+        torch.save(classifier, config.RNN_CLASSIFIER)

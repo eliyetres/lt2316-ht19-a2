@@ -26,9 +26,14 @@ if __name__ == '__main__':
 
     # Load trained models and data
     print("Loading models...")
-    model1 = torch.load("model_1.pkl")
-    model2 = torch.load("model_2.pkl")
-    classifier = torch.load("classifier.pkl")
+    if use_attention is True:
+        model1 = torch.load(config.RNN_ATTENTION_MODEL1)
+        model2 = torch.load(config.RNN_ATTENTION_MODEL2)
+        classifier = torch.load(config.RNN_ATTENTION_CLASSIFIER)
+    else:
+        model1 = torch.load(config.RNN_MODEL1)
+        model2 = torch.load(config.RNN_MODEL2)
+        classifier = torch.load(config.RNN_CLASSIFIER)
 
     print("Loading pre-trained embeddings...")
     w2v_model = load_model(config.PATH_TO_PRETRAINED_EMBEDDINGS)
@@ -55,8 +60,8 @@ if __name__ == '__main__':
 
     # Set parameters to eval mode
     model1.eval()
-    model2.eval() 
-    classifier.eval()  
+    model2.eval()
+    classifier.eval()
 
     print("Evaluating model...")
     for sent1, sent2, boundary in test_generator:
@@ -65,11 +70,10 @@ if __name__ == '__main__':
         if use_attention is True:
             # when using attention, seq_len for both sentences need to be the same
             max_sent_len = max(
-                    max([len(word_tokenize(a)) for a in sent1]),
-                    max([len(word_tokenize(a)) for a in sent2]))
+                max([len(word_tokenize(a)) for a in sent1]),
+                max([len(word_tokenize(a)) for a in sent2]))
             sent1_vectors = generate_batch_vectors(sent1, w2v_model, max_sent_len=max_sent_len)
             sent2_vectors = generate_batch_vectors(sent2, w2v_model, max_sent_len=max_sent_len)
-
 
         # Model without attention
         if use_attention is False:
