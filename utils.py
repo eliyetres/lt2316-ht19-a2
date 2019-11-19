@@ -4,6 +4,7 @@ from nltk.tokenize import word_tokenize
 import csv
 import pickle
 import torch
+from random import shuffle
 from sklearn.metrics import classification_report
 
 
@@ -12,10 +13,10 @@ def load_model(model_path):
     return model
 
 
-def read_data_from_csv(filename, train=True):
+def read_data_from_csv(filename, equalize=False, train=True):
     data = []
-    # only need thsis stuff for generating class-equalized data for training
-    if train is True:
+    # only need this stuff for generating class-equalized data for training
+    if equalize is True:
         num_change = int(config.RNN_NUM_RECORDS / 2)
         num_same = num_change + config.RNN_SAME_ADDITIONAL_RECORDS
         change_records = 0
@@ -26,8 +27,8 @@ def read_data_from_csv(filename, train=True):
             if index == 0:
                 continue
 
-            # if we are generating training data, it should be equalized for SAME and CHANGE
-            if train is True:
+            # if equalize = True, data should be equalized for SAME and CHANGE
+            if equalize is True:
                 current_boundary = row[2].strip()
 
                 if (current_boundary == '[SAME]' and same_records < num_same) or \
@@ -45,7 +46,7 @@ def read_data_from_csv(filename, train=True):
 
                 if same_records >= num_same and change_records >= num_change:
                     break
-            # we don't care about equalizing class data in testing data
+            # just add data as is. This will happen when equalize=False
             else:
                 data.append({
                     'sent1': row[0].strip(),
@@ -53,6 +54,13 @@ def read_data_from_csv(filename, train=True):
                     'boundary': row[2].strip()
                 })
 
+            # if generating non-equalized training data, stopping condition should be config.RNN_NUM_RECORDS
+            if train is True and equalize is False and index > config.RNN_NUM_RECORDS:
+                break
+
+            # if train is False, we don't care about either equalization or a max number of records
+
+    shuffle(data)
     return data
 
 

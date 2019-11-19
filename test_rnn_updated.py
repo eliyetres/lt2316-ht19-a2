@@ -54,7 +54,7 @@ if __name__ == '__main__':
     w2v_model = load_model(config.PATH_TO_PRETRAINED_EMBEDDINGS)
 
     print("Loading training data...")
-    test_data = read_data_from_csv(config.CSV_FILENAME_TEST, train=False)
+    test_data = read_data_from_csv(config.CSV_FILENAME_TEST, train=False, equalize=False)
 
     print("\tTotal length of test data: {}".format(len(test_data)))
     print("\tNumber of SAME records: {}".format(len([a for a in test_data if a['boundary'] == '[SAME]'])))
