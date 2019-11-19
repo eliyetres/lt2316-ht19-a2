@@ -13,7 +13,7 @@ class SpeakerAttentionRNN(nn.Module):
 
     def forward(self, seq):
         hidden_layer = self.init_hidden(len(seq))
-        hidden_layer.to(self.dev)
+        hidden_layer = hidden_layer.to(self.dev)
         output, hidden = self.gru(seq, hidden_layer)
         return output, hidden
 
