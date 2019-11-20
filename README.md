@@ -57,11 +57,23 @@ The model was trained on about 12000 records of class CHANGE, and around 88000 r
 |--------------|-----------|--------|----------|---------|
 | Same         | 0.93      | 0.92   | 0.92     | 507666  |
 | Change       | 0.42      | 0.48   | 0.45     | 63852   |
+|              |           |        |          |         |
 | micro avg    | 0.87      | 0.87   | 0.87     | 571518  |
 | macro        | 0.68      | 0.70   | 0.69     | 571518  |
 | weighted avg | 0.88      | 0.87   | 0.87     | 571518  |
 
 #### RNN trained without attention and using equalized class counts  
+
+The model was trained on 11000 records.
+
+|              | precision | recall | f1-score | support |
+|--------------|-----------|--------|----------|---------|
+| Same         | 0.96      | 0.83   | 0.89     | 507666  |
+| Change       | 0.34      | 0.69   | 0.46     | 63852   |
+|              |           |        |          |         |
+| micro avg    | 0.82      | 0.82   | 0.82     | 571518  |
+| macro        | 0.65      | 0.76   | 0.67     | 571518  |
+| weighted avg | 0.89      | 0.82   | 0.84     | 571518  |
 
 ## Bonuses
 
