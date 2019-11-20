@@ -51,8 +51,8 @@ The text is processed in the same way as for the training data. As opposed to to
 
 #### RNN trained without attention and without equalized class counts  
 
-Total length of training data: 100000
-Number of SAME records: 88000
+Total length of training data: 100000\
+Number of SAME records: 88000\
 Number of CHANGE records: 12000
 
 |              | precision | recall | f1-score | support |
@@ -66,8 +66,8 @@ Number of CHANGE records: 12000
 
 #### RNN trained without attention and using equalized class counts  
 
-Total length of training data: 110000
-Number of SAME records: 60000
+Total length of training data: 110000\
+Number of SAME records: 60000\
 Number of CHANGE records: 50000
 
 |              | precision | recall | f1-score | support |
@@ -81,8 +81,8 @@ Number of CHANGE records: 50000
 
 #### RNN trained using attention and without equalized class counts  
 
-Total length of training data: 100001
-Number of SAME records: 87990
+Total length of training data: 100001\
+Number of SAME records: 87990\
 Number of CHANGE records: 12011
 
 ## Bonuses
