@@ -70,6 +70,8 @@ Total length of training data: 110000\
 Number of SAME records: 60000\
 Number of CHANGE records: 50000
 
+Final loss: 4.4
+
 |              | precision | recall | f1-score | support |
 |--------------|-----------|--------|----------|---------|
 | Same         | 0.96      | 0.83   | 0.89     | 507666  |
@@ -81,9 +83,26 @@ Number of CHANGE records: 50000
 
 #### RNN trained using attention and without equalized class counts  
 
-Total length of training data: 100001\
+Total length of training data: 100000\
 Number of SAME records: 87990\
 Number of CHANGE records: 12011
+
+Final loss:  4.8
+
+|              | precision | recall | f1-score | support |
+|--------------|-----------|--------|----------|---------|
+| Same         | 0.92      | 0.99   | 0.95     | 507666  |
+| Change       | 0.71      | 0.28   | 0.40     | 63852   |
+|              |           |        |          |         |
+| micro avg    | 0.91      | 0.91   | 0.91     | 571518  |
+| macro        | 0.81      | 0.63   | 0.68     | 571518  |
+| weighted avg | 0.89      | 0.91   | 0.89     | 571518  |
+
+#### RNN trained using attention and using equalized class counts
+
+Total length of training data: 110000\
+Number of SAME records: 60000\
+Number of CHANGE records: 50000
 
 ## Bonuses
 
