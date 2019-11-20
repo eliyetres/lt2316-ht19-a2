@@ -51,7 +51,9 @@ The text is processed in the same way as for the training data. As opposed to to
 
 #### RNN trained without attention and without equalized class counts  
 
-The model was trained on about 12000 records of class CHANGE, and around 88000 records of class SAME.
+Total length of training data: 100000
+Number of SAME records: 88000
+Number of CHANGE records: 12000
 
 |              | precision | recall | f1-score | support |
 |--------------|-----------|--------|----------|---------|
@@ -64,7 +66,9 @@ The model was trained on about 12000 records of class CHANGE, and around 88000 r
 
 #### RNN trained without attention and using equalized class counts  
 
-The model was trained on 11000 records.
+Total length of training data: 110000
+Number of SAME records: 60000
+Number of CHANGE records: 50000
 
 |              | precision | recall | f1-score | support |
 |--------------|-----------|--------|----------|---------|
@@ -74,6 +78,12 @@ The model was trained on 11000 records.
 | micro avg    | 0.82      | 0.82   | 0.82     | 571518  |
 | macro        | 0.65      | 0.76   | 0.67     | 571518  |
 | weighted avg | 0.89      | 0.82   | 0.84     | 571518  |
+
+#### RNN trained using attention and without equalized class counts  
+
+Total length of training data: 100001
+Number of SAME records: 87990
+Number of CHANGE records: 12011
 
 ## Bonuses
 
