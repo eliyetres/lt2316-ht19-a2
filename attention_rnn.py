@@ -9,7 +9,8 @@ class SpeakerAttentionRNN(nn.Module):
         self.hidden_size = hidden_size
         self.dev = dev
 
-        self.gru = nn.GRU(emb_size, hidden_size, num_layers=num_layers, batch_first=True)
+        self.gru = nn.GRU(emb_size, hidden_size,
+                          num_layers=num_layers, batch_first=True)
 
     def forward(self, seq):
         hidden_layer = self.init_hidden(len(seq))
@@ -30,7 +31,6 @@ class Attention(nn.Module):
         energies = self.fc(rnn_output)
         energies = energies.squeeze(dim=2)
         attention_weights = torch.softmax(energies, dim=1)
-
         rnn_output = rnn_output.permute(2, 0, 1)
         weighted_output = attention_weights * rnn_output
         output = weighted_output.sum(dim=2)
