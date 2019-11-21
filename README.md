@@ -104,6 +104,23 @@ Total length of training data: 110000\
 Number of SAME records: 60000\
 Number of CHANGE records: 50000
 
+Final loss: 8.58
+
+|              | precision | recall | f1-score | support |
+|--------------|-----------|--------|----------|---------|
+| Same         | 0.94      | 0.93   | 0.94     | 507666  |
+| Change       | 0.50      | 0.54   | 0.52     | 63852   |
+|              |           |        |          |         |
+| micro avg    | 0.89      | 0.89   | 0.89     | 571518  |
+| macro        | 0.72      | 0.74   | 0.73     | 571518  |
+| weighted avg | 0.89      | 0.89   | 0.89     | 571518  |
+
+#### BERT model without equalized class counts  
+
+Total length of training data: 110000\
+Number of SAME records: 60000\
+Number of CHANGE records: 50000
+
 ## Bonuses
 
 ### Another method
