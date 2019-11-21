@@ -8,6 +8,7 @@ from sklearn.model_selection import train_test_split
 from tqdm import trange
 import numpy as np
 import joblib
+import tarfile
 
 import config
 
@@ -41,7 +42,7 @@ def read_data_from_csv(filename):
                 # set prev_sent to current sentence. And get boundary from this record too
                 prev_sent = next_sent
                 boundary = row[1]
-            except IndexError as e:
+            except IndexError:
                 break
 
     return data
@@ -156,13 +157,9 @@ if __name__ == '__main__':
     del data
 
     print("Loading models...")
-    # train_data = joblib.load('train_data.pkl')
-    # test_data = joblib.load('test_data.pkl')
-    tokenizer = BertTokenizer.from_pretrained(
-        'bert-base-uncased', do_lower_case=True)
+    tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)
     # initialize the model with 2 output classes
-    model = BertForSequenceClassification.from_pretrained(
-        "bert-base-uncased", num_labels=2)
+    model = BertForSequenceClassification.from_pretrained("bert-base-uncased", num_labels=2)
     device = torch.device(config.DEVICE)
     model = model.to(device)
     # initialize the optimzier
@@ -214,6 +211,26 @@ if __name__ == '__main__':
             nb_tr_steps += 1
 
         print("Train loss: {}".format(tr_loss / nb_tr_steps))
+
+    print("Saving model and tokenizer...")
+    model_to_save = model.module if hasattr(model, 'module') else model
+    # apparently, we HAVE to keep this particular filenames - although we can change the paths I think
+    torch.save(model_to_save.state_dict(), config.BERT_MODEL_FILE)
+    model_to_save.config.to_json_file(config.BERT_CONFIG_FILE)
+    # package the .bin and .config file into a .tar.gz file
+    fp = tarfile.open(BERT_TAR_FILE, "w:gz")
+    fp.add(config.BERT_MODEL_NAME)
+    fp.add(config.BERT_CONFIG_FILE)
+    fp.close()
+    # save the vocabulary - this will create a file called "vocab.txt" at given path
+    tokenizer.save_vocabulary('.')
+
+    del model
+    del tokenizer
+
+    print("Loading pre-trained model and tokenizer...")
+    model = BertForSequenceClassification.from_pretrained(config.BERT_TAR_FILE, num_labels=2)
+    tokenizer = BertTokenizer.from_pretrained(config.BERT_VOCAB_FILE, do_lower_case=True)
 
     print("Evaluating the model...")
     model.eval()
