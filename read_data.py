@@ -1,9 +1,11 @@
+import csv
 import os
 import re
-import csv
+import xml.etree.ElementTree as ET
+
 import nltk.data
 import nltk.tokenize.punkt
-import xml.etree.ElementTree as ET
+import pandas as pd
 from sklearn.model_selection import train_test_split
 
 import config
@@ -62,43 +64,36 @@ def process_data_tags(tag, dirname):
 
 
 def post_process(words, bound):
+    """Replaces british words found in the senetences with their american equivalent"""
 
     new_words = []
     new_bound = []
-
-    #-1 because the last boundary is removed
+    # -1 because the last boundary is removed
     for i in range(0, len(words) - 1):
         # Loops with two sentences at a time to see if they
         # contain the given expressions
 
         # replaces british spelling with american
-        sent1, sent2 = replace_british_words(words[i]), replace_british_words(words[i + 1])
+        sent1, sent2 = replace_british_words(
+            words[i]), replace_british_words(words[i + 1])
         # replaces british compound words with american
-        sent1, sent2 = replace_compound_words(sent1), replace_compound_words(sent2)
+        sent1, sent2 = replace_compound_words(
+            sent1), replace_compound_words(sent2)
         sent1, sent2 = remove_characters(sent1), remove_characters(sent2)
-
         if len(sent1) == 0:
             continue
-        # if len(sent1) == 0:
-        #     print(words[i])
-        # if len(sent2) == 0:
-        #     print(words[i + 1])
         if(check_expression(sent1, sent2)):
             new_w = sent1 + ' ' + sent2
             new_b = bound[i + 1]
-
             # Print lines found by an expression
             #print_check(i, words[i], bound[i], i+1, words[i+1], bound[i+1], new_w, new_b)
-
             # Replace next index in sentence list with the concatenation of current and next
             # Don't need to replace tag since we want the last value and it's already at this index
             sent2 = new_w
-
         else:
             # Write complete sentences and their boundaries to the lists
             new_words.append(sent1)
             new_bound.append(bound[i])
-
     # Write last to new list since it's disregarded from the loop
     new_words.append(words[len(words) - 1])
 
@@ -142,7 +137,8 @@ def replace_compound_words(sentence):
 
 
 def remove_characters(sentence):
-    sentence = re.sub("[\[\'\?\;\:\]\[\]\)\”\,\.]|``|Â£50|Â£1|â€", "", sentence)
+    sentence = re.sub(
+        "[\[\'\?\;\:\]\[\]\)\”\,\.]|``|Â£50|Â£1|â€", "", sentence)
     return sentence
 
 
@@ -199,9 +195,6 @@ def write_sents_to_csv(sentences, boundaries, filename):
                 pass
 
 
-import pandas as pd
-
-
 print("Loading data...")
 sent_detector = nltk.data.load('tokenizers/punkt/english.pickle')
 
@@ -228,12 +221,8 @@ test_words = words2[split_index:]
 train_bounds = bound2[:split_index]
 test_bounds = bound2[split_index:]
 
-# df_train = pd.DataFrame(list(zip(train_words, train_bounds)), columns=['Sentence', "Boundary"])
-# df_test = pd.DataFrame(list(zip(test_words, test_bounds)), columns=['Sentence', "Boundary"])
-
 print("Writing data to csv...")
-# df_train.to_csv(config.CSV_FILENAME_TRAIN, index=False, encoding='utf-8')
-# df_test.to_csv(config.CSV_FILENAME_TEST, index=False, encoding='utf-8')
+
 write_sents_to_csv(train_words, train_bounds, config.CSV_FILENAME_TRAIN)
 write_sents_to_csv(test_words, test_bounds, config.CSV_FILENAME_TEST)
 print("Done writing data to csv.")

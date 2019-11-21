@@ -2,12 +2,10 @@ import csv
 import torch
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler
-from pytorch_pretrained_bert import BertTokenizer
-from pytorch_pretrained_bert import BertAdam, BertForSequenceClassification
+from pytorch_pretrained_bert import BertAdam, BertForSequenceClassification, BertTokenizer
 from sklearn.model_selection import train_test_split
 from tqdm import trange
 import numpy as np
-import joblib
 import tarfile
 
 import config
@@ -143,8 +141,7 @@ if __name__ == '__main__':
     data = read_data_from_csv(config.CSV_FILENAME)
 
     # do train-test split
-    train_keys, test_keys = train_test_split(
-        list(data.keys()), test_size=0.2, shuffle=True)
+    train_keys, test_keys = train_test_split(list(data.keys()), test_size=0.2, shuffle=True)
 
     # create train and test dicts
     train_data, test_data = {}, {}
@@ -218,7 +215,7 @@ if __name__ == '__main__':
     torch.save(model_to_save.state_dict(), config.BERT_MODEL_FILE)
     model_to_save.config.to_json_file(config.BERT_CONFIG_FILE)
     # package the .bin and .config file into a .tar.gz file
-    fp = tarfile.open(BERT_TAR_FILE, "w:gz")
+    fp = tarfile.open(config.BERT_TAR_FILE, "w:gz")
     fp.add(config.BERT_MODEL_NAME)
     fp.add(config.BERT_CONFIG_FILE)
     fp.close()

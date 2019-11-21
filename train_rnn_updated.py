@@ -1,16 +1,16 @@
 import torch
 import torch.nn as nn
+from nltk.tokenize import word_tokenize
 from torch.optim import Adam
 from torch.utils import data
-from nltk.tokenize import word_tokenize
 
 import config
+from attention_rnn import SpeakerAttentionClassifier, SpeakerAttentionRNN
 from dataset_updated import Dataset
-from rnn import SpeakerRNN, SpeakerClassifier
-from attention_rnn import SpeakerAttentionRNN, SpeakerAttentionClassifier
-from utils import generate_batch_vectors, generate_sent_vector, \
-    get_boundary_mapping, get_word_vector, load_model, read_data_from_csv
-
+from rnn import SpeakerClassifier, SpeakerRNN
+from utils import (generate_batch_vectors, generate_sent_vector,
+                   get_boundary_mapping, get_word_vector, load_model,
+                   read_data_from_csv)
 
 use_attention = config.USE_ATTENTION
 
@@ -102,12 +102,6 @@ if __name__ == '__main__':
             optimizer2.zero_grad()
 
             if use_attention is True:
-                # max_sent_len = len(word_tokenize(
-                #     max(
-                #         max(sent1_batch, key=lambda x: len(word_tokenize(x))),
-                #         max(sent2_batch, key=lambda x: len(word_tokenize(x)))
-                #     ), key=lambda x: len(word_tokenize(x))
-                # ))
                 # when using attention, seq_len for both sentences need to be the same
                 max_sent_len = max(
                     max([len(word_tokenize(a)) for a in sent1_batch]),

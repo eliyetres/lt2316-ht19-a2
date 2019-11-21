@@ -13,7 +13,6 @@ from utils import (generate_batch_vectors, generate_sent_vector,
                    get_boundary_mapping, get_word_vector, load_model,
                    print_evaluation_score, read_data_from_csv)
 
-
 use_attention = config.USE_ATTENTION
 # CUDA settings
 use_cuda = torch.cuda.is_available()
