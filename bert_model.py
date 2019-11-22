@@ -216,7 +216,7 @@ if __name__ == '__main__':
     model_to_save.config.to_json_file(config.BERT_CONFIG_FILE)
     # package the .bin and .config file into a .tar.gz file
     fp = tarfile.open(config.BERT_TAR_FILE, "w:gz")
-    fp.add(config.BERT_MODEL_NAME)
+    fp.add(config.BERT_MODEL_FILE)
     fp.add(config.BERT_CONFIG_FILE)
     fp.close()
     # save the vocabulary - this will create a file called "vocab.txt" at given path
