@@ -56,15 +56,15 @@ def combine_sents_bert_style(sent1, sent2):
 def preprocess_sents_bert_style(sent_data, tokenizer, max_sent_len):
     sents = []
     labels = []
-    for key in sent_data.keys():
-        sent1 = sent_data[key]['sent1']
-        sent2 = sent_data[key]['sent2']
+    for elem in sent_data:
+        sent1 = elem['sent1']
+        sent2 = elem['sent2']
         combined_sent = combine_sents_bert_style(sent1, sent2)
         tokenized_sent = tokenizer.tokenize(combined_sent)
         # clip tokens to max_sent_len
         tokenized_sent = tokenized_sent[:max_sent_len]
         sents.append(tokenized_sent)
-        labels.append(config.BOUNDARY_TO_INT_MAPPING[sent_data[key]['boundary']])
+        labels.append(config.BOUNDARY_TO_INT_MAPPING[elem['boundary']])
     return sents, labels
 
 
