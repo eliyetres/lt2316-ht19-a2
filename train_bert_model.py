@@ -1,147 +1,18 @@
-import csv
 import torch
-from torch.nn.utils.rnn import pad_sequence
-from torch.utils.data import TensorDataset, DataLoader, RandomSampler
 from pytorch_pretrained_bert import BertAdam, BertForSequenceClassification, BertTokenizer
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report
 from tqdm import trange
-import numpy as np
 import tarfile
 
 import config
-from utils import read_data_from_csv
-
-
-# def read_data_from_csv(filename):
-#     data = {}
-#     with open(filename, 'r') as rfile:
-#         reader = csv.reader(rfile)
-#         for index, row in enumerate(reader):
-#             try:
-#                 # stop at 50,000 records
-#                 if index > config.BERT_NUM_RECORDS:
-#                     break
-
-#                 if index % 10000 == 0 and index > 0:
-#                     print("{} rows processed!".format(index))
-#                 if index == 0:
-#                     continue
-#                 if index == 1:
-#                     prev_sent = row[0]
-#                     boundary = row[1]
-#                     continue
-#                 next_sent = row[0]
-
-#                 data[index] = {}
-#                 data[index]['sent1'] = prev_sent
-#                 data[index]['sent2'] = next_sent
-#                 data[index]['boundary'] = config.BOUNDARY_TO_INT_MAPPING[
-#                     boundary.strip()]
-
-#                 # set prev_sent to current sentence. And get boundary from this record too
-#                 prev_sent = next_sent
-#                 boundary = row[1]
-#             except IndexError:
-#                 break
-
-#     return data
-
-
-def combine_sents_bert_style(sent1, sent2):
-    sent = "[CLS] " + sent1 + " [SEP] " + sent2 + " [SEP]"
-    return sent
-
-
-def preprocess_sents_bert_style(sent_data, tokenizer, max_sent_len):
-    sents = []
-    labels = []
-    for elem in sent_data:
-        sent1 = elem['sent1']
-        sent2 = elem['sent2']
-        combined_sent = combine_sents_bert_style(sent1, sent2)
-        tokenized_sent = tokenizer.tokenize(combined_sent)
-        # clip tokens to max_sent_len
-        tokenized_sent = tokenized_sent[:max_sent_len]
-        sents.append(tokenized_sent)
-        labels.append(config.BOUNDARY_TO_INT_MAPPING[elem['boundary']])
-    return sents, labels
-
-
-def create_segment_masks(preprocessed_train_data, max_sent_len):
-    segment_masks = []
-    for sent in preprocessed_train_data:
-        sent_id = 0
-        sent_mask = []
-        for token in sent:
-            # append sent_id first, then check for SEP token
-            sent_mask.append(sent_id)
-            # when SEP token found, switch sent_id to 1, since new sentence is starting now
-            if token == '[SEP]':
-                sent_id = 1
-        while len(sent_mask) < max_sent_len:
-            sent_mask.append(0)
-        segment_masks.append(sent_mask)
-    return segment_masks
-
-
-def prepare_data(data, tokenizer, max_sent_len):
-    print("\tTokenizing data...")
-    preprocessed_data, labels = preprocess_sents_bert_style(
-        data, tokenizer, max_sent_len)
-
-    # max_sent_len = max(len(a) for a in preprocessed_data)
-    # max sentence length for BERT is 512
-
-    print("\tGetting numeric representations, padding and creating segment and attention masks...")
-    # get numeric representations of tokens
-    input_ids = [tokenizer.convert_tokens_to_ids(
-        x) for x in preprocessed_data]
-    # pad sequences
-    padded_seqs = pad_sequence([torch.LongTensor(x)
-                                for x in input_ids], batch_first=True)
-    # create segment masks for separating two sentences
-    segment_masks = create_segment_masks(
-        preprocessed_data, padded_seqs.size(1))
-
-    # create attention masks
-    attention_masks = []
-    for seq in padded_seqs:
-        seq_mask = [float(x > 0) for x in seq]
-        attention_masks.append(seq_mask)
-
-    print("\tCreating tensors...")
-    # make everything a tensor
-    tensor_seqs = torch.LongTensor(padded_seqs)
-    tensor_labels = torch.LongTensor(labels)
-    tensor_attention_masks = torch.LongTensor(attention_masks)
-    tensor_segment_masks = torch.LongTensor(segment_masks)
-
-    print("\tCreating dataset...")
-    # batching
-    batch_size = config.BERT_BATCH_SIZE
-    # make an iterator
-    tensor_data = TensorDataset(
-        tensor_seqs, tensor_segment_masks, tensor_attention_masks, tensor_labels)
-    tensor_sampler = RandomSampler(tensor_data)
-    tensor_dataloader = DataLoader(
-        tensor_data, sampler=tensor_sampler, batch_size=batch_size)
-
-    return tensor_dataloader
-
-
-def flat_accuracy(preds, labels):
-    # pred_flat = np.argmax(preds, axis=1).flatten()
-    # labels_flat = labels.flatten()
-    # f1_value = f1_score(labels_flat, pred_flat)
-    accuracy = np.sum(preds == labels) / len(labels)
-    return accuracy
+from utils import read_data_from_csv, prepare_data_bert
 
 
 if __name__ == '__main__':
     # train_data is the same thing as the train_data and test_data outputs from preprocess_data, just pickled
     # This helps avoid having to run the preprocess_data script everytime
     print("Loading data...")
+    if config.EQUALIZE_CLASS_COUNTS is True:
+        print("Equalizing class counts!")
     train_data = read_data_from_csv(
         filename=config.CSV_FILENAME_TRAIN,
         train=True,
@@ -169,10 +40,7 @@ if __name__ == '__main__':
     # INPUTS
     print("Preparing training data...")
     max_sent_len = config.BERT_MAX_SENT_LEN
-    train_dataloader = prepare_data(train_data, tokenizer, max_sent_len)
-
-    # print("Preparing testing data...")
-    # test_dataloader = prepare_data(test_data, tokenizer, max_sent_len)
+    train_dataloader = prepare_data_bert(train_data, tokenizer, max_sent_len)
 
     # TRAINING
     print("Training the model...")
