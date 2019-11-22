@@ -4,6 +4,7 @@ from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler
 from pytorch_pretrained_bert import BertAdam, BertForSequenceClassification, BertTokenizer
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
 from tqdm import trange
 import numpy as np
 import tarfile
@@ -129,9 +130,11 @@ def prepare_data(data, tokenizer, max_sent_len):
 
 
 def flat_accuracy(preds, labels):
-    pred_flat = np.argmax(preds, axis=1).flatten()
-    labels_flat = labels.flatten()
-    return np.sum(pred_flat == labels_flat) / len(labels_flat)
+    # pred_flat = np.argmax(preds, axis=1).flatten()
+    # labels_flat = labels.flatten()
+    # f1_value = f1_score(labels_flat, pred_flat)
+    accuracy = np.sum(preds == labels) / len(labels)
+    return accuracy
 
 
 if __name__ == '__main__':
@@ -235,6 +238,9 @@ if __name__ == '__main__':
     eval_loss, eval_accuracy = 0, 0
     nb_eval_steps, nb_eval_examples = 0, 0
 
+    actual_labels = []
+    predicted_labels = []
+
     for batch in test_dataloader:
         batch = tuple(t.to(device) for t in batch)
         input_ids, segment_masks, attention_masks, labels = batch
@@ -243,11 +249,17 @@ if __name__ == '__main__':
                            attention_mask=attention_masks)
 
         logits = logits.detach().cpu().numpy()
+        pred_flat = np.argmax(logits, axis=1).flatten()
         label_ids = labels.to('cpu').numpy()
+        labels_flat = label_ids.flatten()
+
+        # these are used for getting F1 score later
+        predicted_labels.extend(pred_flat)
+        actual_labels.extend(labels_flat)
 
         tmp_eval_accuracy = flat_accuracy(logits, label_ids)
-
         eval_accuracy += tmp_eval_accuracy
         nb_eval_steps += 1
 
     print("Testing data accuracy: {}".format(eval_accuracy / nb_eval_steps))
+    print(classification_report(actual_labels, predicted_labels))
