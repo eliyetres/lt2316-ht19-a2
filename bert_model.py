@@ -231,6 +231,7 @@ if __name__ == '__main__':
 
     print("Evaluating the model...")
     model.eval()
+    model.to(device)
     eval_loss, eval_accuracy = 0, 0
     nb_eval_steps, nb_eval_examples = 0, 0
 
