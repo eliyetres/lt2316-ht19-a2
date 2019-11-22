@@ -25,20 +25,20 @@ if __name__ == '__main__':
 
     # Load trained models and data
     print("Loading models...")
-    if use_attention is True and config.RNN_EQUALIZE_CLASS_COUNTS is True:
+    if use_attention is True and config.EQUALIZE_CLASS_COUNTS is True:
         print("\tUsing attention!")
         print("\tEqualized class counts!")
         model1 = torch.load(config.RNN_EQ_ATTENTION_MODEL1)
         model2 = torch.save(config.RNN_EQ_ATTENTION_MODEL2)
         classifier = torch.save(config.RNN_EQ_ATTENTION_CLASSIFIER)
 
-    elif use_attention is True and config.RNN_EQUALIZE_CLASS_COUNTS is False:
+    elif use_attention is True and config.EQUALIZE_CLASS_COUNTS is False:
         print("\tUsing attention!")
         model1 = torch.save(config.RNN_ATTENTION_MODEL1)
         model2 = torch.save(config.RNN_ATTENTION_MODEL2)
         classifier = torch.save(config.RNN_ATTENTION_CLASSIFIER)
 
-    elif use_attention is False and config.RNN_EQUALIZE_CLASS_COUNTS is True:
+    elif use_attention is False and config.EQUALIZE_CLASS_COUNTS is True:
         print("\tEqualized class counts!")
         model1 = torch.save(config.RNN_EQ_MODEL1)
         model2 = torch.save(config.RNN_EQ_MODEL2)
@@ -52,8 +52,12 @@ if __name__ == '__main__':
     print("Loading pre-trained embeddings...")
     w2v_model = load_model(config.PATH_TO_PRETRAINED_EMBEDDINGS)
 
-    print("Loading training data...")
-    test_data = read_data_from_csv(config.CSV_FILENAME_TEST, train=False, equalize=False)
+    print("Loading testing data...")
+    test_data = read_data_from_csv(
+        filename=config.CSV_FILENAME_TEST,
+        train=False,
+        equalize=False
+    )
 
     print("\tTotal length of test data: {}".format(len(test_data)))
     print("\tNumber of SAME records: {}".format(len([a for a in test_data if a['boundary'] == '[SAME]'])))

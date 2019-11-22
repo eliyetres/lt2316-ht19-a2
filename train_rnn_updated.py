@@ -22,7 +22,13 @@ if __name__ == '__main__':
     print("Loading training data...")
     if config.RNN_EQUALIZE_CLASS_COUNTS is True:
         print("\tEqualizing class counts!")
-    train_data = read_data_from_csv(config.CSV_FILENAME_TRAIN, train=True, equalize=config.RNN_EQUALIZE_CLASS_COUNTS)
+
+    train_data = read_data_from_csv(
+        filename=config.CSV_FILENAME_TRAIN,
+        train=True,
+        equalize=config.EQUALIZE_CLASS_COUNTS,
+        num_records=config.RNN_NUM_RECORDS
+    )
 
     print("\tTotal length of training data: {}".format(len(train_data)))
     print("\tNumber of SAME records: {}".format(len([a for a in train_data if a['boundary'] == '[SAME]'])))

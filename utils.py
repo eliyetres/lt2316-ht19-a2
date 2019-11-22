@@ -13,11 +13,11 @@ def load_model(model_path):
     return model
 
 
-def read_data_from_csv(filename, equalize=False, train=True):
+def read_data_from_csv(filename, equalize=False, train=True, num_records=-1):
     data = []
     # only need this stuff for generating class-equalized data for training
     if equalize is True:
-        num_change = int(config.RNN_NUM_RECORDS / 2)
+        num_change = int(num_records / 2)
         num_same = num_change + config.RNN_SAME_ADDITIONAL_RECORDS
         change_records = 0
         same_records = 0
@@ -54,8 +54,8 @@ def read_data_from_csv(filename, equalize=False, train=True):
                     'boundary': row[2].strip()
                 })
 
-            # if generating non-equalized training data, stopping condition should be config.RNN_NUM_RECORDS
-            if train is True and equalize is False and index > config.RNN_NUM_RECORDS:
+            # if generating non-equalized training data, stopping condition should be num_records
+            if train is True and equalize is False and index > num_records:
                 break
 
             # if train is False, we don't care about either equalization or a max number of records
