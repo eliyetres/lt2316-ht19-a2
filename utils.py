@@ -1,11 +1,13 @@
-import config
-from gensim.models import KeyedVectors
-from nltk.tokenize import word_tokenize
 import csv
-import pickle
 import torch
 from random import shuffle
+from gensim.models import KeyedVectors
+from nltk.tokenize import word_tokenize
+from torch.nn.utils.rnn import pad_sequence
+from torch.utils.data import TensorDataset, DataLoader, RandomSampler
 from sklearn.metrics import classification_report
+
+import config
 
 
 def load_model(model_path):
@@ -112,3 +114,85 @@ def get_boundary_mapping(boundary_batch):
     mapped_boundaries = [config.BOUNDARY_TO_INT_MAPPING[b]
                          for b in boundary_batch]
     return mapped_boundaries
+
+
+def combine_sents_bert_style(sent1, sent2):
+    sent = "[CLS] " + sent1 + " [SEP] " + sent2 + " [SEP]"
+    return sent
+
+
+def preprocess_sents_bert_style(sent_data, tokenizer, max_sent_len):
+    sents = []
+    labels = []
+    for elem in sent_data:
+        sent1 = elem['sent1']
+        sent2 = elem['sent2']
+        combined_sent = combine_sents_bert_style(sent1, sent2)
+        tokenized_sent = tokenizer.tokenize(combined_sent)
+        # clip tokens to max_sent_len
+        tokenized_sent = tokenized_sent[:max_sent_len]
+        sents.append(tokenized_sent)
+        labels.append(config.BOUNDARY_TO_INT_MAPPING[elem['boundary']])
+    return sents, labels
+
+
+def create_segment_masks(preprocessed_train_data, max_sent_len):
+    segment_masks = []
+    for sent in preprocessed_train_data:
+        sent_id = 0
+        sent_mask = []
+        for token in sent:
+            # append sent_id first, then check for SEP token
+            sent_mask.append(sent_id)
+            # when SEP token found, switch sent_id to 1, since new sentence is starting now
+            if token == '[SEP]':
+                sent_id = 1
+        while len(sent_mask) < max_sent_len:
+            sent_mask.append(0)
+        segment_masks.append(sent_mask)
+    return segment_masks
+
+
+def prepare_data_bert(data, tokenizer, max_sent_len):
+    print("\tTokenizing data...")
+    preprocessed_data, labels = preprocess_sents_bert_style(
+        data, tokenizer, max_sent_len)
+
+    # max_sent_len = max(len(a) for a in preprocessed_data)
+    # max sentence length for BERT is 512
+
+    print("\tGetting numeric representations, padding and creating segment and attention masks...")
+    # get numeric representations of tokens
+    input_ids = [tokenizer.convert_tokens_to_ids(
+        x) for x in preprocessed_data]
+    # pad sequences
+    padded_seqs = pad_sequence([torch.LongTensor(x)
+                                for x in input_ids], batch_first=True)
+    # create segment masks for separating two sentences
+    segment_masks = create_segment_masks(
+        preprocessed_data, padded_seqs.size(1))
+
+    # create attention masks
+    attention_masks = []
+    for seq in padded_seqs:
+        seq_mask = [float(x > 0) for x in seq]
+        attention_masks.append(seq_mask)
+
+    print("\tCreating tensors...")
+    # make everything a tensor
+    tensor_seqs = torch.LongTensor(padded_seqs)
+    tensor_labels = torch.LongTensor(labels)
+    tensor_attention_masks = torch.LongTensor(attention_masks)
+    tensor_segment_masks = torch.LongTensor(segment_masks)
+
+    print("\tCreating dataset...")
+    # batching
+    batch_size = config.BERT_BATCH_SIZE
+    # make an iterator
+    tensor_data = TensorDataset(
+        tensor_seqs, tensor_segment_masks, tensor_attention_masks, tensor_labels)
+    tensor_sampler = RandomSampler(tensor_data)
+    tensor_dataloader = DataLoader(
+        tensor_data, sampler=tensor_sampler, batch_size=batch_size)
+
+    return tensor_dataloader
