@@ -10,41 +10,42 @@ import numpy as np
 import tarfile
 
 import config
+from utils import read_data_from_csv
 
 
-def read_data_from_csv(filename):
-    data = {}
-    with open(filename, 'r') as rfile:
-        reader = csv.reader(rfile)
-        for index, row in enumerate(reader):
-            try:
-                # stop at 50,000 records
-                if index > config.BERT_NUM_RECORDS:
-                    break
+# def read_data_from_csv(filename):
+#     data = {}
+#     with open(filename, 'r') as rfile:
+#         reader = csv.reader(rfile)
+#         for index, row in enumerate(reader):
+#             try:
+#                 # stop at 50,000 records
+#                 if index > config.BERT_NUM_RECORDS:
+#                     break
 
-                if index % 10000 == 0 and index > 0:
-                    print("{} rows processed!".format(index))
-                if index == 0:
-                    continue
-                if index == 1:
-                    prev_sent = row[0]
-                    boundary = row[1]
-                    continue
-                next_sent = row[0]
+#                 if index % 10000 == 0 and index > 0:
+#                     print("{} rows processed!".format(index))
+#                 if index == 0:
+#                     continue
+#                 if index == 1:
+#                     prev_sent = row[0]
+#                     boundary = row[1]
+#                     continue
+#                 next_sent = row[0]
 
-                data[index] = {}
-                data[index]['sent1'] = prev_sent
-                data[index]['sent2'] = next_sent
-                data[index]['boundary'] = config.BOUNDARY_TO_INT_MAPPING[
-                    boundary.strip()]
+#                 data[index] = {}
+#                 data[index]['sent1'] = prev_sent
+#                 data[index]['sent2'] = next_sent
+#                 data[index]['boundary'] = config.BOUNDARY_TO_INT_MAPPING[
+#                     boundary.strip()]
 
-                # set prev_sent to current sentence. And get boundary from this record too
-                prev_sent = next_sent
-                boundary = row[1]
-            except IndexError:
-                break
+#                 # set prev_sent to current sentence. And get boundary from this record too
+#                 prev_sent = next_sent
+#                 boundary = row[1]
+#             except IndexError:
+#                 break
 
-    return data
+#     return data
 
 
 def combine_sents_bert_style(sent1, sent2):
@@ -63,7 +64,7 @@ def preprocess_sents_bert_style(sent_data, tokenizer, max_sent_len):
         # clip tokens to max_sent_len
         tokenized_sent = tokenized_sent[:max_sent_len]
         sents.append(tokenized_sent)
-        labels.append(sent_data[key]['boundary'])
+        labels.append(config.BOUNDARY_TO_INT_MAPPING[sent_data[key]['boundary']])
     return sents, labels
 
 
@@ -141,20 +142,12 @@ if __name__ == '__main__':
     # train_data is the same thing as the train_data and test_data outputs from preprocess_data, just pickled
     # This helps avoid having to run the preprocess_data script everytime
     print("Loading data...")
-    data = read_data_from_csv(config.CSV_FILENAME)
-
-    # do train-test split
-    train_keys, test_keys = train_test_split(list(data.keys()), test_size=0.2, shuffle=True)
-
-    # create train and test dicts
-    train_data, test_data = {}, {}
-    for key in train_keys:
-        train_data[key] = data[key]
-
-    for key in test_keys:
-        test_data[key] = data[key]
-
-    del data
+    train_data = read_data_from_csv(
+        filename=config.CSV_FILENAME_TRAIN,
+        train=True,
+        num_records=config.BERT_NUM_RECORDS,
+        equalize=config.EQUALIZE_CLASS_COUNTS
+    )
 
     print("Loading models...")
     tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)
@@ -178,8 +171,8 @@ if __name__ == '__main__':
     max_sent_len = config.BERT_MAX_SENT_LEN
     train_dataloader = prepare_data(train_data, tokenizer, max_sent_len)
 
-    print("Preparing testing data...")
-    test_dataloader = prepare_data(test_data, tokenizer, max_sent_len)
+    # print("Preparing testing data...")
+    # test_dataloader = prepare_data(test_data, tokenizer, max_sent_len)
 
     # TRAINING
     print("Training the model...")
@@ -225,41 +218,41 @@ if __name__ == '__main__':
     # save the vocabulary - this will create a file called "vocab.txt" at given path
     tokenizer.save_vocabulary('.')
 
-    del model
-    del tokenizer
+    # del model
+    # del tokenizer
 
-    print("Loading pre-trained model and tokenizer...")
-    model = BertForSequenceClassification.from_pretrained(config.BERT_TAR_FILE, num_labels=2)
-    tokenizer = BertTokenizer.from_pretrained(config.BERT_VOCAB_FILE, do_lower_case=True)
+    # print("Loading pre-trained model and tokenizer...")
+    # model = BertForSequenceClassification.from_pretrained(config.BERT_TAR_FILE, num_labels=2)
+    # tokenizer = BertTokenizer.from_pretrained(config.BERT_VOCAB_FILE, do_lower_case=True)
 
-    print("Evaluating the model...")
-    model.eval()
-    model.to(device)
-    eval_loss, eval_accuracy = 0, 0
-    nb_eval_steps, nb_eval_examples = 0, 0
+    # print("Evaluating the model...")
+    # model.eval()
+    # model.to(device)
+    # eval_loss, eval_accuracy = 0, 0
+    # nb_eval_steps, nb_eval_examples = 0, 0
 
-    actual_labels = []
-    predicted_labels = []
+    # actual_labels = []
+    # predicted_labels = []
 
-    for batch in test_dataloader:
-        batch = tuple(t.to(device) for t in batch)
-        input_ids, segment_masks, attention_masks, labels = batch
-        with torch.no_grad():
-            logits = model(input_ids, token_type_ids=segment_masks,
-                           attention_mask=attention_masks)
+    # for batch in test_dataloader:
+    #     batch = tuple(t.to(device) for t in batch)
+    #     input_ids, segment_masks, attention_masks, labels = batch
+    #     with torch.no_grad():
+    #         logits = model(input_ids, token_type_ids=segment_masks,
+    #                        attention_mask=attention_masks)
 
-        logits = logits.detach().cpu().numpy()
-        pred_flat = np.argmax(logits, axis=1).flatten()
-        label_ids = labels.to('cpu').numpy()
-        labels_flat = label_ids.flatten()
+    #     logits = logits.detach().cpu().numpy()
+    #     pred_flat = np.argmax(logits, axis=1).flatten()
+    #     label_ids = labels.to('cpu').numpy()
+    #     labels_flat = label_ids.flatten()
 
-        # these are used for getting F1 score later
-        predicted_labels.extend(pred_flat)
-        actual_labels.extend(labels_flat)
+    #     # these are used for getting F1 score later
+    #     predicted_labels.extend(pred_flat)
+    #     actual_labels.extend(labels_flat)
 
-        tmp_eval_accuracy = flat_accuracy(logits, label_ids)
-        eval_accuracy += tmp_eval_accuracy
-        nb_eval_steps += 1
+    #     tmp_eval_accuracy = flat_accuracy(pred_flat, labels_flat)
+    #     eval_accuracy += tmp_eval_accuracy
+    #     nb_eval_steps += 1
 
-    print("Testing data accuracy: {}".format(eval_accuracy / nb_eval_steps))
-    print(classification_report(actual_labels, predicted_labels))
+    # print("Testing data accuracy: {}".format(eval_accuracy / nb_eval_steps))
+    # print(classification_report(actual_labels, predicted_labels))
