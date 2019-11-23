@@ -121,6 +121,10 @@ Total length of training data: 110000\
 Number of SAME records: 60000\
 Number of CHANGE records: 50000
 
+Final loss: 0.091
+
+Testing data accuracy: 0.938
+
 |              | precision | recall | f1-score | support |
 |--------------|-----------|--------|----------|---------|
 | Same         | 0.95      | 0.98   | 0.97     | 507666  |
