@@ -121,6 +121,15 @@ Total length of training data: 110000\
 Number of SAME records: 60000\
 Number of CHANGE records: 50000
 
+|              | precision | recall | f1-score | support |
+|--------------|-----------|--------|----------|---------|
+| Same         | 0.95      | 0.98   | 0.97     | 507666  |
+| Change       | 0.80      | 0.61   | 0.69     | 63852   |
+|              |           |        |          |         |
+| micro avg    | 0.94      | 0.94   | 0.94     | 571518  |
+| macro        | 0.88      | 0.79   | 0.83     | 571518  |
+| weighted avg | 0.93      | 0.94   | 0.94     | 571518  |
+
 ## Bonuses
 
 ### Another method
