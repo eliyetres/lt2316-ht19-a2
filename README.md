@@ -37,7 +37,7 @@ Two models of the same Recurrent network class are created with two optimizers. 
 The idea of adding an attention mechanism to the RNN network is that attention should help the classifier identify which parts of the concatenated output are important for making the prediction. Ideally, that should be words that signify a change or sameness, like "My honour.". If the first sentence includes these words, it's almost always the same speaker (SAME label).
 The models are created from the same classes as the RNN and classifier models. It passes the concatenated output states of the two RNNs and then applies softmax to them to get probabilities. Then the probabilities are multiplied with the concatenated output to get a weighted output, and is then fed into the linear layer for classification.
 
-### Bert network model
+### BERT network model
 
 The pre-processed text that was initially saved as a csv is loaded, so the test data is processed the same way as the training data. This helps avoid having to run the preprocess_data script multiple times. Further data processing is made to fit the Bert model. Tokenized sentences are clipped to fit the max size, as well as creating a segment mask for the training data. The segment mask is used to identify whether the input is one sentence or two sentences long. If the model uses one sentence, the mask is simply a sequence of 0s. For two sentence inputs, there is a 0 for each token of the first sentence, followed by a 1 for each token of the second sentence. The labels are binary, and formatted the same way as the RNN model, using 0 or 1.
 
