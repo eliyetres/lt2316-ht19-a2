@@ -13,7 +13,7 @@ Sandra Derbring
 
 ### Pre processing
 
-In the pre processing, the paragraphs are first selected by their speech tags and from that the speaker names are extracted. The speeches for the "nospeaker" which is the parliament's President speaking are also included. Then for every sentence, the  boundary SAME was added to all sentences when the speaker does not change. For every new speech, a list is kept of the current and previous speaker to check if it's they're the same, and popping the list for each new speaker name in the speech tag. If the speaker changes, the boundary is set to `CHANGE`, if not it stays SAME. The text is split into training, test and validation files and saved to `.csv`.
+In the pre processing, the paragraphs are first selected by their speech tags and from that the speaker names are extracted. The speeches for the "nospeaker" which is the parliament's President speaking are also included. Then for every sentence, the  boundary SAME was added to all sentences when the speaker does not change. For every new speech, a list is kept of the current and previous speaker to check if it's they're the same, and popping the list for each new speaker name in the speech tag. If the speaker changes, the boundary is set to `CHANGE`, if not it stays `SAME`. The text is split into training, test and validation files and saved to `.csv`.
 The sentences and boundaries were written to a csv file in the format: \
 Sentence1 | Sentence2 | Boundary
 
@@ -39,13 +39,13 @@ The models are created from the same classes as the RNN and classifier models. I
 
 ### BERT network model
 
-The pre-processed text that was initially saved as a csv is loaded, so the test data is processed the same way as the training data. This helps avoid having to run the preprocess_data script multiple times. Further data processing is made to fit the Bert model. Tokenized sentences are clipped to fit the max size, as well as creating a segment mask for the training data. The segment mask is used to identify whether the input is one sentence or two sentences long. If the model uses one sentence, the mask is simply a sequence of zeroes. For two sentence inputs, there is a 0 for each token of the first sentence, followed by a 1 for each token of the second sentence. The labels are binary, and formatted the same way as the RNN model, using 0 or 1.
+The pre-processed text that was initially saved as a csv is loaded, so the test data is processed the same way as the training data. This helps avoid having to run the `preprocess_data.py` script multiple times. Further data processing is made to fit the BERT model. Tokenized sentences are clipped to fit the max size, as well as creating a segment mask for the training data. The segment mask is used to identify whether the input is one sentence or two sentences long. If the model uses one sentence, the mask is simply a sequence of zeroes. For two sentence inputs, there is a 0 for each token of the first sentence, followed by a 1 for each token of the second sentence. The labels are binary, and formatted the same way as the RNN model, using 0 or 1.
 
 ## Evaluation
 
 ### RNN evaluation
 
-The text is processed in the same way as for the training data. As opposed to to multi-class classification where the class with the highest probability after applying softmax is selected, the prediction for binary classification is computed by getting the probability and check if it's >=0.5 and assign it to class 1, assign it to class 0 otherwise.  The labels for the correct class and the predicted are saved and used to generate a classification report showing precision, recall and f1-score using Sklearn's classification report.
+The text is processed in the same way as for the training data. As opposed to to multi-class classification where the class with the highest probability after applying softmax is selected, the prediction for binary classification is computed by getting the probability and check if it's >=0.5 and assign it to class 1, assign it to class 0 otherwise. The labels for the correct class and the predicted are saved and used to generate a classification report showing precision, recall and f1-score using Sklearn's classification report.
 
 ### Results
 
