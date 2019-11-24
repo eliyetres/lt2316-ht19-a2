@@ -117,10 +117,6 @@ Final loss: 8.58
 
 #### BERT model without equalized class counts  
 
-Total length of training data: 110000\
-Number of SAME records: 60000\
-Number of CHANGE records: 50000
-
 Final loss: 0.091
 
 Testing data accuracy: 0.938
@@ -133,6 +129,25 @@ Testing data accuracy: 0.938
 | micro avg    | 0.94      | 0.94   | 0.94     | 571518  |
 | macro        | 0.88      | 0.79   | 0.83     | 571518  |
 | weighted avg | 0.93      | 0.94   | 0.94     | 571518  |
+
+#### BERT with equalized class counts
+
+Final loss: 0.052
+
+Testing data accuracy: 0.901
+
+Total length of training data: 110000\
+Number of SAME records: 60000\
+Number of CHANGE records: 50000
+
+|              | precision | recall | f1-score | support |
+|--------------|-----------|--------|----------|---------|
+| Same         | 0.98      | 0.91   | 0.94     | 507666  |
+| Change       | 0.54      | 0.86   | 0.66     | 63852   |
+|              |           |        |          |         |
+| micro avg    | 0.90      | 0.90   | 0.90     | 571518  |
+| macro avg    | 0.76      | 0.89   | 0.80     | 571518  |
+| weighted avg | 0.93      | 0.90   | 0.91     | 571518  |
 
 ## Bonuses
 
