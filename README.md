@@ -117,6 +117,10 @@ Final loss: 8.58
 
 #### BERT model without equalized class counts  
 
+Total length of training data: 100001\
+Number of SAME records: 87990\
+Number of CHANGE records: 12011
+
 Final loss: 0.091
 
 Testing data accuracy: 0.938
@@ -132,13 +136,13 @@ Testing data accuracy: 0.938
 
 #### BERT with equalized class counts
 
-Final loss: 0.052
-
-Testing data accuracy: 0.901
-
 Total length of training data: 110000\
 Number of SAME records: 60000\
 Number of CHANGE records: 50000
+
+Final loss: 0.052
+
+Testing data accuracy: 0.901
 
 |              | precision | recall | f1-score | support |
 |--------------|-----------|--------|----------|---------|
