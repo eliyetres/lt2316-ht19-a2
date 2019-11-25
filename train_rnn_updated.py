@@ -20,7 +20,7 @@ if __name__ == '__main__':
     w2v_model = load_model(config.PATH_TO_PRETRAINED_EMBEDDINGS)
 
     print("Loading training data...")
-    if config.RNN_EQUALIZE_CLASS_COUNTS is True:
+    if config.EQUALIZE_CLASS_COUNTS is True:
         print("\tEqualizing class counts!")
 
     train_data = read_data_from_csv(
@@ -147,15 +147,15 @@ if __name__ == '__main__':
         print("Loss: {}".format(epoch_loss))
         print()
 
-    if use_attention is True and config.RNN_EQUALIZE_CLASS_COUNTS is True:
+    if use_attention is True and config.EQUALIZE_CLASS_COUNTS is True:
         torch.save(model1, config.RNN_EQ_ATTENTION_MODEL1)
         torch.save(model2, config.RNN_EQ_ATTENTION_MODEL2)
         torch.save(classifier, config.RNN_EQ_ATTENTION_CLASSIFIER)
-    elif use_attention is True and config.RNN_EQUALIZE_CLASS_COUNTS is False:
+    elif use_attention is True and config.EQUALIZE_CLASS_COUNTS is False:
         torch.save(model1, config.RNN_ATTENTION_MODEL1)
         torch.save(model2, config.RNN_ATTENTION_MODEL2)
         torch.save(classifier, config.RNN_ATTENTION_CLASSIFIER)
-    elif use_attention is False and config.RNN_EQUALIZE_CLASS_COUNTS is True:
+    elif use_attention is False and config.EQUALIZE_CLASS_COUNTS is True:
         torch.save(model1, config.RNN_EQ_MODEL1)
         torch.save(model2, config.RNN_EQ_MODEL2)
         torch.save(classifier, config.RNN_EQ_CLASSIFIER)
