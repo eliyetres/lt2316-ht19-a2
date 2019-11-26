@@ -1,4 +1,5 @@
 
+
 # LT2316 HT19 Assignment 2
 
 Sentence pair classification for parliamentary turn-taking
@@ -210,6 +211,21 @@ It also stands to be seen that using attention generally gives better results fo
 
 Ultimately, identifying which model is better depends upon the scenario in question. For example, if identifying as many records of the `CHANGE` class as possible is more important for us, we should choose the models with a higher recall for this class. 
 
+## Scripts
+
+We have the following scripts in use:
+
+- `rnn.py`: This script contains the class definition for the RNN network, and the classifier network without attention.
+- `attention_rnn.py`: This script contains the class definition for the RNN network, the attention network, and the classifier network with attention.
+- `dataset_updated.py`: This script contains the Dataset class to be used by the dataloader.
+- `read_data.py`: This script loads the files from the path specified in the config file, applies the pre-processing techniques on them as discussed previously, performs an 80-20 train-test split on the data, and then writes the training and testing data to individual files (the names of which are specified in the config file).
+- `utils.py`: This script contains a bunch of utility functions which are used by the various training and testing scripts.
+- `config.py`: This script contains various configurations ranging from file paths and model configurations to model names, whether to equalize class counts or not, whether to use attention or not etc.
+- `train_rnn_updated.py`: This is the training script that is used for training the RNN models and classifier. This same script can be used to train a model without attention and without equalized class counts, without attention and with equalized class counts, with attention and without equalized class counts, and with attention and with equalized class counts. These configurations can be set in the config file, and then this file can be run to train the models and classifier and save them to disk.
+- `test_rnn_updated.py`: This script will load the model from disk as per the configuration specified in the config file, and then use it to make predictions on the records found in the testing file.
+- `train_bert_model.py`: This script loads a BERT model and fine-tunes it as per the data in the training file, and saves the model and tokenizer to disk.
+- `test_bert_model.py`: This script loads the fine-tuned BERT model and tokenizer saved to disk (the paths to which is specified in the config file), and uses it to make predictions on the records found in the testing file.
+
 ## Bonuses
 
 ### Another method
@@ -220,4 +236,4 @@ The third model, RNN with attention mechanism was used for this bonus part.
 
 The first thing we would want to try for future work would be to apply the attention mechanism on the word level (second dimension of the output vector) instead of the hidden size dimension (third dimension of the output vector). It would be interesting to see if that has a noticeable impact on the results, and potentially help us identify if we're applying attention correctly in this case or not.
 
-Another thing that would be nice to do would be to see if we can oversample the data for the `CHANGE` class, and then potentially be able to train the model on a much larger amount of data while retaining equality for the amount of data for both classes. We briefly looked into oversampling techniques, and they seem to be geared more towards numeric data rather than text data - perhaps we could apply them at the word index or word vector level somehow?
+Another thing that would be nice to do would be to see if we can oversample the data for the `CHANGE` class, and then potentially be able to train the model on a much larger amount of data while retaining equality for the amount of data for both classes. We briefly looked into oversampling techniques, and they seem to be geared more towards numeric data rather than text data - perhaps we could apply them at the word index or word vector level somehow.
