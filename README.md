@@ -35,14 +35,14 @@ Words like "hon." are changed to their full word equivalent "honorary" to make s
 To create training and testing data, the `read_data` script is used. It loads the speech data from all XML files (the path to which is specified in the config file), and applies the preprocessing techniques upon it as described above. This is followed by applying an 80-20 train-test split on the entire data. After this, the training and testing data are both written to separate .csv files (as specified in the config file, as specified under `CSV_FILENAME_TRAIN` and `CSV_FILENAME_TEST`). 
 
 One problem that we noticed during training was that there are a lot more records for `SAME` as opposed to `CHANGE` (which naturally makes sense). This can lead the model to overfitting on the `SAME` class. 
-To get around this, we specified a bunch of parameters in the config file: 
+To get around this, we specified a bunch of parameters in the config file:
 
 - The parameter `RNN_NUM_RECORDS` specifies how many records to load from the training file to train the models. This parameter exists because the total amount of records in the training data filename is huge, and using all of it can take a lot of time. 
 
-- The binary parameter `EQUALIZE_CLASS_COUNTS` ensures that if set to True, an equalized amount of class data is loaded from the training file. What this means is that for example, if `RNN_NUM_RECORDS` is 10,000, that means 5000 records for `SAME` and 5000 records for `CHANGE` are loaded from the training data file. 
+- The binary parameter `EQUALIZE_CLASS_COUNTS` ensures that if set to True, an equalized amount of class data is loaded from the training file. What this means is that for example, if `RNN_NUM_RECORDS` is 10,000, that means 5000 records for `SAME` and 5000 records for `CHANGE` are loaded from the training data file.
 
-- The parameter `RNN_SAME_ADDITIONAL_RECORDS` allows the user to select an additional number of records to use for the `SAME` class. This is because we have a lot more records for the `SAME` class as opposed to the `CHANGE` class, and if we want that to reflect in the training data while still keeping a reasonable ratio between the number of `SAME` and `CHANGE` records, we can specify how many additional records for the `SAME` class to use. 
-	- So for example, if `EQUALIZE_CLASS_COUNTS` is True, `RNN_NUM_RECORDS` is 10,000 and `RNN_SAME_ADDITIONAL_RECORDS` is 1500, then 5000 records will be loaded for the `CHANGE` class and 6500 records will be loaded for the `SAME` class.
+- The parameter `RNN_SAME_ADDITIONAL_RECORDS` allows the user to select an additional number of records to use for the `SAME` class. This is because we have a lot more records for the `SAME` class as opposed to the `CHANGE` class, and if we want that to reflect in the training data while still keeping a reasonable ratio between the number of `SAME` and `CHANGE` records, we can specify how many additional records for the `SAME` class to use.
+- So for example, if `EQUALIZE_CLASS_COUNTS` is True, `RNN_NUM_RECORDS` is 10,000 and `RNN_SAME_ADDITIONAL_RECORDS` is 1500, then 5000 records will be loaded for the `CHANGE` class and 6500 records will be loaded for the `SAME` class.
 
 ## Approach
 
@@ -50,17 +50,17 @@ To get around this, we specified a bunch of parameters in the config file:
 
 The recurrent network we designed for this task consists of single GRU layer, which receives as input the sentence embeddings, and returns both the output and hidden states from the GRU. We did not define an embedding layer in this network, as we are using the pre-trained Word2Vec embeddings to generate the word vectors, for each word in a given sentence. Therefore, the preprocessing involved before feeding a sentence into the network is as follows: get all sentences in the batch, and get the maximum sentence length from this batch. For each sentence, replace each word with its associated vector as per the pre-trained embeddings, and for all sentences having a shorter word amount than the maximum sentence length for this batch, pad it with the vector associated with the padding vector (which is a 300-dimensional vector consisting of all zeros), and any unknown words will be replaced by the vector associated with unknown words, which is specified in the config file.
 
-Two objects of this same recurrent network class are created, with two optimizers. The criterion used is Binary Cross Entropy, since the possible labels are either 0 or 1 (`SAME` or `CHANGE`). 
+Two objects of this same recurrent network class are created, with two optimizers. The criterion used is Binary Cross Entropy, since the possible labels are either 0 or 1 (`SAME` or `CHANGE`).
 
-We have defined a single dataloader which returns both sentence batches simultaneously (where the first batch consists of the first sentence of the inputs, and the second batch consists of the second sentence of the inputs). The first batch is fed into one object, and the second batch into the other object. The hidden states from both these models are combined by concatenating, e.g. if the output is 300-dimensional and there are two outputs, this would result in a 600-dimensional vector, and this is then is fed into the classifier model. This final model is used for the actual classification. 
+We have defined a single dataloader which returns both sentence batches simultaneously (where the first batch consists of the first sentence of the inputs, and the second batch consists of the second sentence of the inputs). The first batch is fed into one object, and the second batch into the other object. The hidden states from both these models are combined by concatenating, e.g. if the output is 300-dimensional and there are two outputs, this would result in a 600-dimensional vector, and this is then is fed into the classifier model. This final model is used for the actual classification.
 
 Initially two LSTMs were used in the recurrent models, but were changed to GRU since it returns a single hidden state and is easier to deal with. Some structural changes were also made from the initial RNN; it was concluded to not be a good idea to have the optimizer and criterion inside the class, as that would make the weights not update properly.
 
 ### RNN network model with Attention
 
-This is the alternate architecture we experimented with, as part of the bonus. The RNN models are almost identical to the ones in the above setting, except that here we take the output states for concatentation from those networks, instead of the hidden states. The classifier model consists of an attention network, which takes these concatenated outputs, applies a softmax on them to get probabilities, and returns a weighted output, which consists of the computed probabilities multiplied with the output vector. This is then fed to a linear model, followed by a Sigmoid (just like in the above setting).
+This is the alternate architecture we experimented with, as part of the bonus. The RNN models are almost identical to the ones in the above setting, except that here we take the output states for concatenation from those networks, instead of the hidden states. The classifier model consists of an attention network, which takes these concatenated outputs, applies a softmax on them to get probabilities, and returns a weighted output, which consists of the computed probabilities multiplied with the output vector. This is then fed to a linear model, followed by a Sigmoid (just like in the above setting).
 
-The idea of adding an attention mechanism to the RNN network is that attention should help the classifier identify which parts of the concatenated output are important for making the prediction. Ideally, that should be words that signify a change or sameness, like "My honour.". If the first sentence includes these words, it's almost always the same speaker (`SAME`). 
+The idea of adding an attention mechanism to the RNN network is that attention should help the classifier identify which parts of the concatenated output are important for making the prediction. Ideally, that should be words that signify a change or sameness, like "My honour.". If the first sentence includes these words, it's almost always the same speaker (`SAME`).
 
 **NOTE**: The concatenation of the output vectors here is applied on the second dimension, which is basically the output_size dimension. Perhaps an interesting variant would be to apply the concatenation at the word level instead, and see if that has any impact on the results. For future work!
 
@@ -69,20 +69,21 @@ The idea of adding an attention mechanism to the RNN network is that attention s
 As the second part of the assignment, we fine-tuned a BERT model on this dataset. For this, we mostly followed this (very helpful!) blog step by step:
 [https://mccormickml.com/2019/07/22/BERT-fine-tuning/](https://mccormickml.com/2019/07/22/BERT-fine-tuning/)
 
-One thing we did differently here is that since we have two sentences as input, we combined them into a single sentence using the CLS and SEP tokens, and used the segment mask to help the model understand where the first sentence ends and the second sentence begins. We have used a 0 for each token of the first sentence, and a 1 for each token of the second sentence. 
+One thing we did differently here is that since we have two sentences as input, we combined them into a single sentence using the CLS and SEP tokens, and used the segment mask to help the model understand where the first sentence ends and the second sentence begins. We have used a 0 for each token of the first sentence, and a 1 for each token of the second sentence.
 
-Otherwise, we pretty much followed the instructions in this blog in a straightforward manner, and that helped us train the model. One thing we faced quite a bit of complication with was saving and loading the BERT model. Since we used an older version of the HuggingFace module (`pytorch_pretrained_bert` instead of `transformers`), it was hard to find instructions for the rather convoluted process of saving the model to disk. The model itself is saved as a .bin file, and its configuration is saved to a separate .json file. These two files are then packaged into a .tar.gz compressed directory, and this is what the model needs to be loaded from. 
+Otherwise, we pretty much followed the instructions in this blog in a straightforward manner, and that helped us train the model. One thing we faced quite a bit of complication with was saving and loading the BERT model. Since we used an older version of the HuggingFace module (`pytorch_pretrained_bert` instead of `transformers`), it was hard to find instructions for the rather convoluted process of saving the model to disk. The model itself is saved as a .bin file, and its configuration is saved to a separate .json file. These two files are then packaged into a .tar.gz compressed directory, and this is what the model needs to be loaded from.
 In the more recent version of the module, the BERT classifier object simply contains a `save_pretrained` function that can be used to save the model to disk (but we discovered this too late).
 
 ## Evaluation
 
 ### RNN evaluation
 
-The text is processed in the same way as for the training data. As opposed to to multi-class classification where the class with the highest probability after applying softmax is selected, the prediction for binary classification is computed by getting the probability and check if it's >=0.5 and assign it to class 1, assign it to class 0 otherwise. The labels for the correct class and the predicted are saved and used to generate a classification report showing precision, recall and f1-score using scikit-learn's classification report.
+The text is processed in the same way as for the training data. As opposed to multi-class classification where the class with the highest probability after applying softmax is selected, the prediction for binary classification is computed by getting the probability and check if it's >=0.5 and assign it to class 1, assign it to class 0 otherwise. The labels for the correct class and the predicted are saved and used to generate a classification report showing precision, recall and f1-score using scikit-learn's classification report.
 
 ### Results
 
 #### Common configurations for all RNN models
+
 Batch size: 256\
 Number of epochs: 10\
 Hidden size: 300\
@@ -174,6 +175,7 @@ Testing data accuracy: 0.938
 | weighted avg | 0.93      | 0.94   | 0.94     | 571518  |
 
 #### Common configurations for BERT models
+
 Batch size: 16\
 Number of epochs: 4\
 Maximum sentence length: 256
@@ -199,13 +201,13 @@ Testing data accuracy: 0.901
 
 #### Analysis of results
 
-Because of fear of the model overfitting, the evaluation metrics to focus on here are precision and recall, as opposed to accuracy (since the model can massively overfit on the `SAME` class and can still return a very good accuracy, as the testing set consists of a lot more records of `SAME` than `CHANGE`). 
+Because of fear of the model overfitting, the evaluation metrics to focus on here are precision and recall, as opposed to accuracy (since the model can massively overfit on the `SAME` class and can still return a very good accuracy, as the testing set consists of a lot more records of `SAME` than `CHANGE`).
 
-The precision and recall for the `SAME` class are very high in all cases, but it is the `CHANGE` class that we are more interested in. The common pattern is that if we don't use equalized class counts, the precision is quite high for the `CHANGE` class, and the recall is quite low. Using equalized counts brings down the precision, and increases the recall of the model. This same pattern can be seen repeated if we look at the overall macro avg precision and recall of the model. Precision is defined as the total number of identified true positives divided by the total number of records labeled as positive by the model. Recall is defined as number of identified true positives divided by the total number of actual records that actually belong to the positive class. 
+The precision and recall for the `SAME` class are very high in all cases, but it is the `CHANGE` class that we are more interested in. The common pattern is that if we don't use equalized class counts, the precision is quite high for the `CHANGE` class, and the recall is quite low. Using equalized counts brings down the precision, and increases the recall of the model. This same pattern can be seen repeated if we look at the overall macro avg precision and recall of the model. Precision is defined as the total number of identified true positives divided by the total number of records labelled as positive by the model. Recall is defined as number of identified true positives divided by the total number of actual records that actually belong to the positive class.
 
 Keeping these definitions in mind, it makes sense that the recall for the `CHANGE` class increases when models are trained with equalized class counts, since then it identifies a higher number of true positives from the total set of true positives. Naturally, as the recall increases when trained on equalized class counts, the precision goes down (since these two metrics counter each other).
 
-As per our understanding, the precision being higher for the `CHANGE` class for models trained on un-equalized class counts data also makes sense, as these models (being overfit to a certain extent on the `SAME` class) make lesser predictions for the `CHANGE` class, and as this class has a lesser amount of records in the testing data anyway, the precision is higher. 
+As per our understanding, the precision being higher for the `CHANGE` class for models trained on un-equalized class counts data also makes sense, as these models (being overfit to a certain extent on the `SAME` class) make lesser predictions for the `CHANGE` class, and as this class has a lesser amount of records in the testing data anyway, the precision is higher.
 
 It also stands to be seen that using attention generally gives better results for most metrics (but not necessarily all!).
 
