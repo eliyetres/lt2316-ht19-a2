@@ -64,7 +64,7 @@ def process_data_tags(tag, dirname):
 
 
 def post_process(words, bound):
-    """Replaces british words found in the senetences with their american equivalent"""
+    """Replaces british words found in the senetences with their american equivalent and concatenates lines"""
 
     new_words = []
     new_bound = []
@@ -82,11 +82,14 @@ def post_process(words, bound):
         sent1, sent2 = remove_characters(sent1), remove_characters(sent2)
         if len(sent1) == 0:
             continue
+        #concatenate lines that are separated erroneously by tokenization
         if(check_expression(sent1, sent2)):
             new_w = sent1 + ' ' + sent2
             new_b = bound[i + 1]
+
             # Print lines found by an expression
             #print_check(i, words[i], bound[i], i+1, words[i+1], bound[i+1], new_w, new_b)
+
             # Replace next index in sentence list with the concatenation of current and next
             # Don't need to replace tag since we want the last value and it's already at this index
             sent2 = new_w
@@ -195,6 +198,13 @@ def write_sents_to_csv(sentences, boundaries, filename):
                 pass
 
 
+parser = argparse.ArgumentParser(description="Read data for preprocessing")
+parser.add_argument("-S", "--test_size", metavar="T", dest="test_size", type=float, default=0.2, help="Size in percentage of test set (default 0.2).")
+            
+args = parser.parse_args()
+test_size = args.test_size
+train_size = 1.0-test_size
+
 print("Loading data...")
 sent_detector = nltk.data.load('tokenizers/punkt/english.pickle')
 
@@ -213,7 +223,8 @@ print("Lengths of sentence and boundaries lists after post processing:")
 print(len(words2))
 print(len(bound2))
 
-split_index = int(0.8 * len(words2))
+#split_index = int(0.8 * len(words2))
+split_index = int(train_size * len(words2))
 
 train_words = words2[:split_index]
 test_words = words2[split_index:]
