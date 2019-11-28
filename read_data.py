@@ -6,8 +6,6 @@ import xml.etree.ElementTree as ET
 
 import nltk.data
 import nltk.tokenize.punkt
-import pandas as pd
-from sklearn.model_selection import train_test_split
 
 import config
 
@@ -21,9 +19,6 @@ def process_data_tags(tag, dirname):
         if not filename.endswith('.xml'):
             continue
     for index, filename in enumerate(os.listdir(dirname)):
-        #print("Currently processing: {}".format(filename))
-        # if index > 20:
-        #     break
         if not filename.endswith('.xml'):
             continue
         fullname = os.path.join(dirname, filename)
@@ -227,7 +222,6 @@ print("Lengths of sentence and boundaries lists after post processing:")
 print(len(words2))
 print(len(bound2))
 
-#split_index = int(0.8 * len(words2))
 split_index = int(train_size * len(words2))
 
 train_words = words2[:split_index]
