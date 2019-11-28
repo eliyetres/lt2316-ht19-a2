@@ -232,7 +232,7 @@ We have the following scripts in use:
 
 ### Another method
 
-The third model, RNN with attention mechanism, was used for this bonus part.
+The third model, RNN with attention mechanism, was used for this bonus part. The motivation behind using this approach has been described earlier, when explaining the network.
 
 ## Future work
 
