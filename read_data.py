@@ -1,6 +1,7 @@
 import csv
 import os
 import re
+import argparse
 import xml.etree.ElementTree as ET
 
 import nltk.data
@@ -82,7 +83,7 @@ def post_process(words, bound):
         sent1, sent2 = remove_characters(sent1), remove_characters(sent2)
         if len(sent1) == 0:
             continue
-        #concatenate lines that are separated erroneously by tokenization
+        # concatenate lines that are separated erroneously by tokenization
         if(check_expression(sent1, sent2)):
             new_w = sent1 + ' ' + sent2
             new_b = bound[i + 1]
@@ -200,10 +201,13 @@ def write_sents_to_csv(sentences, boundaries, filename):
 
 parser = argparse.ArgumentParser(description="Read data for preprocessing")
 parser.add_argument("-S", "--test_size", metavar="T", dest="test_size", type=float, default=0.2, help="Size in percentage of test set (default 0.2).")
-            
+
 args = parser.parse_args()
 test_size = args.test_size
-train_size = 1.0-test_size
+if test_size >= 1.0 or test_size <= 0.0:
+    print("Please enter a test size between 0.0 and 1.0")
+    exit(1)
+train_size = 1.0 - test_size
 
 print("Loading data...")
 sent_detector = nltk.data.load('tokenizers/punkt/english.pickle')
