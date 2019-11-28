@@ -41,8 +41,11 @@
 
 - Creating a dataloader for the dataset
 - First version of train test splitter
-- Pre processing data, changing abbreviations to full words
-- Post processing script, check tokenization and concatenate words
+- Post processing script, check tokenization and concatenate lines
+- Re-create sentences and boundaries from the post processing
+- Supervising that the various post processing functionalities didn't affect the data in a bad way
 - Built structure of first RNN network model
 - First training script for RNN network model
+- Creating variables for the RNN network model in the config
 - Enabling command line options for the train/test splitting
+- Contributed to the README report
