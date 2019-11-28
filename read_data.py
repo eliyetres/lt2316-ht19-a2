@@ -194,14 +194,18 @@ def write_sents_to_csv(sentences, boundaries, filename):
                 pass
 
 
+#Parser of command line arguments
 parser = argparse.ArgumentParser(description="Read data for preprocessing")
 parser.add_argument("-S", "--test_size", metavar="T", dest="test_size", type=float, default=0.2, help="Size in percentage of test set (default 0.2).")
 
+#Checking command line arguments
 args = parser.parse_args()
 test_size = args.test_size
 if test_size >= 1.0 or test_size <= 0.0:
     print("Please enter a test size between 0.0 and 1.0")
     exit(1)
+
+#Calculating ratio of training data
 train_size = 1.0 - test_size
 
 print("Loading data...")
