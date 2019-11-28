@@ -13,7 +13,7 @@ Sandra Derbring
 
 ## Task Description
 
-The aim of this assignment is to identify that given a pair of sentences, where each sentence is essentially a dialogue, were they both spoken by the same person, or two different persons. So essentially, this can be categorized as a binary classification problem.
+The aim of this assignment is to, given a pair of sentences where each sentence is essentially a dialogue, identify whether they were spoken by the same person, or two different persons. So essentially, this can be categorized as a binary classification problem.
 The approaches that we selected for this problem are as follows:
 - Two unidirectional, one layer RNNs (one for each sentence), followed by a classifier which consists of a single linear layer and a sigmoid
 - BERT for sequence classification
@@ -29,10 +29,10 @@ The sentences and boundaries were written to a csv file in the format: \
 
 ### Post processing
 
-Words like "hon." are changed to their full word equivalent "honorary" to make sure they match their correct word vector in the gensim model. Some British spelled words were changed to their American equivalent, and hyphens were removed for compound words that were spelled with hyphens in British English but not in American. The rest of the words not found in the gensim model at all were removed from the text. Removing some words resulted in some sentences just being an empty string so in the end, these sentences were also removed after making sure that not too much data was lost.
+Words like "hon." are changed to their full word equivalent "honorary" to make sure they match their correct word vector in the gensim model. Some British spelled words were changed to their American equivalent, and hyphens were removed for compound words that were spelled with hyphens in British English but not in American. The tokenization had erroneously split some sentences on abbreviations (e.g. "hon.") and this was checked and concatenated. The rest of the words not found in the gensim model at all were removed from the text. Removing some words resulted in some sentences just being an empty string so in the end, these sentences were also removed after making sure that not too much data was lost.
 
 ## Training and test data
-To create training and testing data, the `read_data` script is used. It loads the speech data from all XML files (the path to which is specified in the config file), and applies the preprocessing techniques upon it as described above. This is followed by applying an 80-20 train-test split on the entire data. After this, the training and testing data are both written to separate .csv files (as specified in the config file, as specified under `CSV_FILENAME_TRAIN` and `CSV_FILENAME_TEST`). 
+To create training and testing data, the `read_data` script is used. It loads the speech data from all XML files (the path to which is specified in the config file), and applies the preprocessing techniques upon it as described above. This is followed by applying a train-test split on the entire data, where the train-test ratio is set by the user when running the script (default is 80-20). After this, the training and testing data are both written to separate .csv files (as specified in the config file, as specified under `CSV_FILENAME_TRAIN` and `CSV_FILENAME_TEST`). 
 
 One problem that we noticed during training was that there are a lot more records for `SAME` as opposed to `CHANGE` (which naturally makes sense). This can lead the model to overfitting on the `SAME` class. 
 To get around this, we specified a bunch of parameters in the config file:
@@ -48,17 +48,17 @@ To get around this, we specified a bunch of parameters in the config file:
 
 ### RNN network and classifier models
 
-The recurrent network we designed for this task consists of single GRU layer, which receives as input the sentence embeddings, and returns both the output and hidden states from the GRU. We did not define an embedding layer in this network, as we are using the pre-trained Word2Vec embeddings to generate the word vectors, for each word in a given sentence. Therefore, the preprocessing involved before feeding a sentence into the network is as follows: get all sentences in the batch, and get the maximum sentence length from this batch. For each sentence, replace each word with its associated vector as per the pre-trained embeddings, and for all sentences having a shorter word amount than the maximum sentence length for this batch, pad it with the vector associated with the padding vector (which is a 300-dimensional vector consisting of all zeros), and any unknown words will be replaced by the vector associated with unknown words, which is specified in the config file.
+The recurrent network we designed for this task consists of single GRU layer, which receives as input the sentence embeddings, and returns both the output and hidden states from the GRU. We did not define an embedding layer in this network, as we are using the pre-trained Word2Vec embeddings to generate the word vectors for each word in a given sentence. Therefore, the preprocessing involved before feeding a sentence into the network is as follows: get all sentences in the batch, and get the maximum sentence length from this batch. For each sentence, replace each word with its associated vector as per the pre-trained embeddings, and for all sentences having a shorter word amount than the maximum sentence length for this batch, pad it with the vector associated with the padding vector (which is a 300-dimensional vector consisting of all zeros), and any unknown words will be replaced by the vector associated with unknown words, which is specified in the config file.
 
 Two objects of this same recurrent network class are created, with two optimizers. The criterion used is Binary Cross Entropy, since the possible labels are either 0 or 1 (`SAME` or `CHANGE`).
 
-We have defined a single dataloader which returns both sentence batches simultaneously (where the first batch consists of the first sentence of the inputs, and the second batch consists of the second sentence of the inputs). The first batch is fed into one object, and the second batch into the other object. The hidden states from both these models are combined by concatenating, e.g. if the output is 300-dimensional and there are two outputs, this would result in a 600-dimensional vector, and this is then is fed into the classifier model. This final model is used for the actual classification.
+We have defined a single dataloader which returns both sentence batches simultaneously (where the first batch consists of the first sentence of the inputs, and the second batch consists of the second sentence of the inputs). The first batch is fed into one object, and the second batch into the other object. The hidden states from both these models are combined by concatenating, e.g. if the output is 300-dimensional and there are two outputs, this would result in a 600-dimensional vector, and this is then fed into the classifier model. This final model is used for the actual classification.
 
 Initially two LSTMs were used in the recurrent models, but were changed to GRU since it returns a single hidden state and is easier to deal with. Some structural changes were also made from the initial RNN; it was concluded to not be a good idea to have the optimizer and criterion inside the class, as that would make the weights not update properly.
 
 ### RNN network model with Attention
 
-This is the alternate architecture we experimented with, as part of the bonus. The RNN models are almost identical to the ones in the above setting, except that here we take the output states for concatenation from those networks, instead of the hidden states. The classifier model consists of an attention network, which takes these concatenated outputs, applies a softmax on them to get probabilities, and returns a weighted output, which consists of the computed probabilities multiplied with the output vector. This is then fed to a linear model, followed by a Sigmoid (just like in the above setting).
+This is the alternate architecture we experimented with, as part of the bonus. The RNN models are almost identical to the ones in the above setting, except that here we take the output states for concatenation from those networks, instead of the hidden states. The classifier model consists of an attention network which takes these concatenated outputs, applies a softmax on them to get probabilities, and returns a weighted output which consists of the computed probabilities multiplied with the output vector. This is then fed to a linear model, followed by a Sigmoid (just like in the above setting).
 
 The idea of adding an attention mechanism to the RNN network is that attention should help the classifier identify which parts of the concatenated output are important for making the prediction. Ideally, that should be words that signify a change or sameness, like "My honour.". If the first sentence includes these words, it's almost always the same speaker (`SAME`).
 
@@ -69,7 +69,7 @@ The idea of adding an attention mechanism to the RNN network is that attention s
 As the second part of the assignment, we fine-tuned a BERT model on this dataset. For this, we mostly followed this (very helpful!) blog step by step:
 [https://mccormickml.com/2019/07/22/BERT-fine-tuning/](https://mccormickml.com/2019/07/22/BERT-fine-tuning/)
 
-One thing we did differently here is that since we have two sentences as input, we combined them into a single sentence using the CLS and SEP tokens, and used the segment mask to help the model understand where the first sentence ends and the second sentence begins. We have used a 0 for each token of the first sentence, and a 1 for each token of the second sentence.
+One thing we did differently was to combine our two input sentences into a single sentence using the CLS and SEP tokens, and used the segment mask to help the model understand where the first sentence ends and the second sentence begins. We have used a 0 for each token of the first sentence, and a 1 for each token of the second sentence.
 
 Otherwise, we pretty much followed the instructions in this blog in a straightforward manner, and that helped us train the model. One thing we faced quite a bit of complication with was saving and loading the BERT model. Since we used an older version of the HuggingFace module (`pytorch_pretrained_bert` instead of `transformers`), it was hard to find instructions for the rather convoluted process of saving the model to disk. The model itself is saved as a .bin file, and its configuration is saved to a separate .json file. These two files are then packaged into a .tar.gz compressed directory, and this is what the model needs to be loaded from.
 In the more recent version of the module, the BERT classifier object simply contains a `save_pretrained` function that can be used to save the model to disk (but we discovered this too late).
@@ -78,7 +78,7 @@ In the more recent version of the module, the BERT classifier object simply cont
 
 ### RNN evaluation
 
-The text is processed in the same way as for the training data. As opposed to multi-class classification where the class with the highest probability after applying softmax is selected, the prediction for binary classification is computed by getting the probability and check if it's >=0.5 and assign it to class 1, assign it to class 0 otherwise. The labels for the correct class and the predicted are saved and used to generate a classification report showing precision, recall and f1-score using scikit-learn's classification report.
+The text in the test data is processed in the same way as for the training data. As opposed to multi-class classification, where the class with the highest probability after applying softmax is selected, the prediction for binary classification is computed by getting the probability and assign it to class 1 if it's >=0.5 and assign it to class 0 otherwise. The labels for the correct class and the predicted class are saved and used to generate a classification report showing precision, recall and f1-score using scikit-learn's classification report.
 
 ### Results
 
@@ -220,7 +220,7 @@ We have the following scripts in use:
 - `rnn.py`: This script contains the class definition for the RNN network, and the classifier network without attention.
 - `attention_rnn.py`: This script contains the class definition for the RNN network, the attention network, and the classifier network with attention.
 - `dataset_updated.py`: This script contains the Dataset class to be used by the dataloader.
-- `read_data.py`: This script loads the files from the path specified in the config file, applies the pre-processing techniques on them as discussed previously, performs an 80-20 train-test split on the data, and then writes the training and testing data to individual files (the names of which are specified in the config file).
+- `read_data.py`: This script loads the files from the path specified in the config file, applies the pre-processing techniques on them as discussed previously, performs a train-test split on the data (default 80-20 if the user doesn't specify something else), and then writes the training and testing data to individual files (the names of which are specified in the config file).
 - `utils.py`: This script contains a bunch of utility functions which are used by the various training and testing scripts.
 - `config.py`: This script contains various configurations ranging from file paths and model configurations to model names, whether to equalize class counts or not, whether to use attention or not etc.
 - `train_rnn_updated.py`: This is the training script that is used for training the RNN models and classifier. This same script can be used to train a model without attention and without equalized class counts, without attention and with equalized class counts, with attention and without equalized class counts, and with attention and with equalized class counts. These configurations can be set in the config file, and then this file can be run to train the models and classifier and save them to disk.
@@ -232,7 +232,7 @@ We have the following scripts in use:
 
 ### Another method
 
-The third model, RNN with attention mechanism was used for this bonus part.
+The third model, RNN with attention mechanism, was used for this bonus part.
 
 ## Future work
 
